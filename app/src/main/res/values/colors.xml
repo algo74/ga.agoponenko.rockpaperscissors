@@ -6,4 +6,5 @@
     <color name="colorRockCubeBg">#82EAF8</color>
     <color name="colorPaperCubeBg">#FFEA00</color>
     <color name="colorScissorsCubeBg">#49F89F</color>
+    <color name="cubeBorder">#ffffff</color>
 </resources>

@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+    <solid android:color="@color/colorRockCubeBg" />
+    <stroke android:width="@dimen/cubeBorderThickness" android:color="@color/cubeBorder" />
+    <corners android:radius="@dimen/cubeRadius" />
+    <padding android:left="8dp" android:top="8dp" android:right="8dp"
+        android:bottom="8dp" />
+</shape>

@@ -22,6 +22,10 @@ public class GameModel {
 
         public static final int size = Move.values().length;
         public static final Move[] val = Move.values();
+
+        public Move next() {
+            return val[(ordinal() + 1) % size];
+        }
     }
 
     public interface MoveCallback {

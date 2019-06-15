@@ -2,4 +2,6 @@
 <resources>
     <dimen name="cubeSize">150dp</dimen>
     <dimen name="cubePadding">8dp</dimen>
+    <dimen name="cubeBorderThickness">4dp</dimen>
+    <dimen name="cubeRadius">10dp</dimen>
 </resources>
