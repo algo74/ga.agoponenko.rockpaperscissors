@@ -1,6 +1,7 @@
 package ga.agoponenko.rockpaperscissors;
 
 import android.animation.Animator;
+import android.animation.ObjectAnimator;
 import android.animation.ValueAnimator;
 import android.content.Context;
 import android.util.Log;
@@ -9,17 +10,27 @@ import android.view.animation.LinearInterpolator;
 import android.widget.ImageView;
 
 class TurningCube {
+    private final ImageView mViewCover;
+    private final Listener mListener;
     private ImageView mViewNew;
     private ImageView mViewOld;
     private CubeSide mSideNew;
     private CubeSide mSideOld;
     private Context mContext;
     private ValueAnimator mCubeAnimator;
+    private boolean mIsEngineMoveReady;
+    private GameModel.Move mEngineMove;
+    private ValueAnimator mEngineMoveAnimator;
+    private ValueAnimator mShowEngineMoveAnimator;
+    private final ObjectAnimator mHideCoverAnimator;
 
-    TurningCube(ImageView view1, ImageView view2, Context context) {
+    TurningCube(ImageView view1, ImageView view2, ImageView viewCover, Context context,
+                Listener listener) {
         mViewNew = view1;
         mViewOld = view2;
+        mViewCover = viewCover;
         mContext = context;
+        mListener = listener;
         mSideNew = new CubeSide(view1);
         mSideOld = new CubeSide(view2);
         mSideNew.setValue(GameModel.Move.ROCK);
@@ -29,12 +40,72 @@ class TurningCube {
         mCubeAnimator.addUpdateListener(cubeTurner);
         mCubeAnimator.addListener(cubeTurner);
         mCubeAnimator.setInterpolator(new LinearInterpolator());
-        mCubeAnimator.setDuration(6000);
-        mCubeAnimator.setRepeatCount(ValueAnimator.INFINITE);
+        mCubeAnimator.setDuration(2000);
+        //mCubeAnimator.setRepeatCount(ValueAnimator.INFINITE);
+
+        mEngineMoveAnimator = ValueAnimator.ofFloat(0f, 1f);
+        mEngineMoveAnimator.setInterpolator(new LinearInterpolator());
+        mEngineMoveAnimator.setDuration(1000);
+        EngineMoveTurner engineMoveTurner = new EngineMoveTurner();
+        mEngineMoveAnimator.addListener(engineMoveTurner);
+        mEngineMoveAnimator.addUpdateListener(engineMoveTurner);
+
+        mShowEngineMoveAnimator = ValueAnimator.ofFloat(0f, 1f);
+        mShowEngineMoveAnimator.setDuration(1000);
+        EngineMoveShower engineMoveShower = new EngineMoveShower();
+        mShowEngineMoveAnimator.addUpdateListener(engineMoveShower);
+        mShowEngineMoveAnimator.addListener(engineMoveShower);
+
+        mHideCoverAnimator = ObjectAnimator.ofFloat(mViewCover,"alpha", 1f, 0f);
+        mHideCoverAnimator.setDuration(500);
+        mHideCoverAnimator.addListener(new Animator.AnimatorListener() {
+            @Override
+            public void onAnimationStart(Animator animation) {
+                mViewNew.setVisibility(View.VISIBLE);
+                mViewNew.setScaleX(1);
+                mViewNew.setScaleY(1);
+                mViewNew.setRotationY(0);
+                mViewNew.setRotationX(0);
+                mViewNew.setTranslationY(0);
+                mViewNew.setTranslationX(0);
+            }
+
+            @Override
+            public void onAnimationEnd(Animator animation) {
+                mViewCover.setVisibility(View.GONE);
+                mCubeAnimator.start();
+            }
+
+            @Override
+            public void onAnimationCancel(Animator animation) {
+            }
+
+            @Override
+            public void onAnimationRepeat(Animator animation) {
+            }
+        });
     }
 
     void startAnimation() {
-        mCubeAnimator.start();
+        mIsEngineMoveReady = false;
+        if (mViewCover.getVisibility() == View.VISIBLE) {
+            mHideCoverAnimator.start();
+        }else {
+            mCubeAnimator.start();
+        }
+    }
+
+    void onEngineMoveReady(GameModel.Move m) {
+        mEngineMove = m;
+        mIsEngineMoveReady = true;
+    }
+
+    void animateEngineMoveReady() {
+        mEngineMoveAnimator.start();
+    }
+
+    void animateShowEngineMove() {
+        mShowEngineMoveAnimator.start();
     }
 
     private class CubeSide {
@@ -67,12 +138,143 @@ class TurningCube {
         }
     }
 
-    private class CubeTurner implements ValueAnimator.AnimatorUpdateListener, ValueAnimator.AnimatorListener {
-
-        private int mPhase;
+    private class EngineMoveTurner implements ValueAnimator.AnimatorUpdateListener,
+          ValueAnimator.AnimatorListener {
         private float mSize;
         private float reverseDistance;
 
+        @Override
+        public void onAnimationStart(Animator animation) {
+            mSize = mViewNew.getWidth() / 2f;
+
+            mViewNew.setVisibility(View.VISIBLE);
+            mViewNew.setScaleX(1);
+            mViewNew.setScaleY(1);
+            mViewNew.setRotationY(0);
+            mViewNew.setRotationX(0);
+            mViewNew.setTranslationY(0);
+            mViewNew.setTranslationX(0);
+
+            mViewOld.setVisibility(View.GONE);
+
+            mViewCover.setVisibility(View.VISIBLE);
+            mViewCover.setAlpha(1f);
+            mViewCover.setScaleX(1);
+            mViewCover.setScaleY(1);
+            mViewCover.setRotationY(0);
+            mViewCover.setRotationX(0);
+            mViewCover.setTranslationY(0);
+            mViewCover.setTranslationX(0);
+
+            int distance = 4000;
+            float scale = mContext.getResources().getDisplayMetrics().density;
+            mViewCover.setCameraDistance(distance * scale);
+            mViewNew.setCameraDistance(distance * scale);
+            reverseDistance =  6f / (distance * scale);
+
+            mViewNew.setPivotY(mSize);
+            mViewNew.setPivotX(0);
+            mViewCover.setPivotY(mSize);
+            mViewCover.setPivotX(mSize * 2);
+        }
+
+        @Override
+        public void onAnimationEnd(Animator animation) {
+            mListener.onEngineMoveReadyAnimationEnd();
+        }
+
+        @Override
+        public void onAnimationCancel(Animator animation) {
+
+        }
+
+        @Override
+        public void onAnimationRepeat(Animator animation) {
+
+        }
+
+        @Override
+        public void onAnimationUpdate(ValueAnimator animation) {
+            final float phaseProg = (float) animation.getAnimatedValue();
+            float angle = 90 * phaseProg;
+            float scale = 2 * (phaseProg - 0.5f);
+            scale = 1f - scale * scale;
+            scale = scale * scale;
+            final float scaleEquator = 1f + .5f *  mSize * reverseDistance * scale;
+            final float scaleMedian = 1f + .2f * mSize * reverseDistance * scale;
+
+            mViewNew.setRotationY(angle);
+            mViewNew.setTranslationX(mSize * 2 * phaseProg);
+            mViewNew.setScaleY(scaleEquator);
+            mViewNew.setScaleX(scaleMedian);
+            mViewCover.setRotationY(angle - 90);
+            mViewCover.setTranslationX(mSize * 2 * (phaseProg - 1));
+            mViewCover.setScaleY(scaleEquator);
+            mViewCover.setScaleX(scaleMedian);
+        }
+    }
+
+    private class EngineMoveShower implements ValueAnimator.AnimatorUpdateListener,
+          ValueAnimator.AnimatorListener {
+        private float mSizeX;
+        private float mSizeY;
+
+        @Override
+        public void onAnimationStart(Animator animation) {
+            float size = mViewNew.getWidth() * 0.9f;
+            // make sure we won't go away from the screen
+            View v = (View) mViewCover.getParent();
+            mSizeX = Math.min(size, mViewCover.getLeft());
+            mSizeY = Math.min(size, v.getHeight() - mViewCover.getBottom());
+
+            mViewNew.setVisibility(View.VISIBLE);
+            mViewNew.setScaleX(1);
+            mViewNew.setScaleY(1);
+            mViewNew.setRotationY(0);
+            mViewNew.setRotationX(0);
+            mViewNew.setTranslationY(0);
+            mViewNew.setTranslationX(0);
+
+            mViewOld.setVisibility(View.GONE);
+
+            mViewCover.setVisibility(View.VISIBLE);
+            mViewCover.setAlpha(1f);
+            mViewCover.setScaleX(1);
+            mViewCover.setScaleY(1);
+            mViewCover.setRotationY(0);
+            mViewCover.setRotationX(0);
+            mViewCover.setTranslationY(0);
+            mViewCover.setTranslationX(0);
+
+            mSideNew.setValue(mEngineMove);
+        }
+
+        @Override
+        public void onAnimationEnd(Animator animation) {
+        }
+
+        @Override
+        public void onAnimationCancel(Animator animation) {
+
+        }
+
+        @Override
+        public void onAnimationRepeat(Animator animation) {
+
+        }
+
+        @Override
+        public void onAnimationUpdate(ValueAnimator animation) {
+            final float phaseProg = (float) animation.getAnimatedValue();
+            mViewCover.setTranslationX(-mSizeX * phaseProg);
+            mViewCover.setTranslationY(mSizeY * phaseProg);
+        }
+    }
+
+    private class CubeTurner implements ValueAnimator.AnimatorUpdateListener, ValueAnimator.AnimatorListener {
+        private int mPhase;
+        private float mSize;
+        private float reverseDistance;
 
         @Override
         public void onAnimationUpdate(final ValueAnimator animation) {
@@ -88,7 +290,6 @@ class TurningCube {
                     mViewNew.setPivotX(mSize);
                 }
                 phaseProg = value;
-
             } else if (value <= 2) {
                 if (mPhase != 1) {
                     Log.d("animation", "Phase 1");
@@ -121,9 +322,10 @@ class TurningCube {
             }
             float angle = 90 * phaseProg;
             float scale = 2 * (phaseProg - 0.5f);
-            scale = (1f - scale * scale);
-            float scaleEquator = 1f + .5f *  mSize * reverseDistance * scale * scale;
-            float scaleMedian = 1f + .2f * mSize * reverseDistance * scale * scale;
+            scale = 1f - scale * scale;
+            scale = scale * scale;
+            final float scaleEquator = 1f + .5f *  mSize * reverseDistance * scale;
+            final float scaleMedian = 1f + .2f * mSize * reverseDistance * scale;
             switch(mPhase) {
                 case 0:
                     mViewOld.setRotationX(-angle);
@@ -164,13 +366,8 @@ class TurningCube {
                     mViewNew.setTranslationX(mSize * 2 * (1 - phaseProg));
                     mViewNew.setScaleY(scaleEquator);
                     mViewNew.setScaleX(scaleMedian);
-
             }
-
-
-
         }
-
 
         @Override
         public void onAnimationStart(Animator animation) {
@@ -189,12 +386,16 @@ class TurningCube {
 
         @Override
         public void onAnimationEnd(Animator animation) {
-
+            if (mIsEngineMoveReady) {
+                animateEngineMoveReady();
+            } else {
+                mCubeAnimator.start();
+            }
         }
 
         @Override
         public void onAnimationCancel(Animator animation) {
-
+            Log.d("Animation", "cancelled");
         }
 
         @Override
@@ -208,9 +409,9 @@ class TurningCube {
             ImageView tmpV = mViewNew;
             mViewNew = mViewOld;
             mViewOld = tmpV;
-            CubeSide tmpS = mSideNew;
-            mSideNew = mSideOld;
-            mSideOld = tmpS;
+            CubeSide tmpS = mSideOld;
+            mSideOld = mSideNew;
+            mSideNew = tmpS;
             mSideNew.setValue(mSideOld.getValue().next());
             mViewOld.setScaleX(1);
             mViewOld.setScaleY(1);
@@ -224,7 +425,10 @@ class TurningCube {
             mViewNew.setRotationX(0);
             mViewNew.setTranslationY(0);
             mViewNew.setTranslationX(0);
-
         }
+    }
+
+    interface Listener {
+        void onEngineMoveReadyAnimationEnd();
     }
 }

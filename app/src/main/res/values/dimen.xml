@@ -4,4 +4,5 @@
     <dimen name="cubePadding">8dp</dimen>
     <dimen name="cubeBorderThickness">4dp</dimen>
     <dimen name="cubeRadius">10dp</dimen>
+    <dimen name="winDrawSize">75dp</dimen>
 </resources>
