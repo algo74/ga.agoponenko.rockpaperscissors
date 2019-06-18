@@ -1,4 +1,6 @@
 /*
+ * Based on "CountDownAnimation" by Ivan Ridao Freitas
+ *
  * Copyright (C) 2014 Ivan Ridao Freitas
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,6 +19,7 @@
 package ga.agoponenko.rockpaperscissors;
 
 import android.os.Handler;
+import android.util.Log;
 import android.view.View;
 import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
@@ -28,26 +31,48 @@ import android.widget.TextView;
  * @author Ivan Ridao Freitas
  * 
  */
-public class CountDownAnimation {
+public class StickyCountDownAnimation {
+
+	private static StickyCountDownAnimation sInstance = null;
+
+	public static StickyCountDownAnimation steal(TextView textView, int startCount,
+												CountDownListener listener) {
+		if (sInstance == null) {
+			sInstance = new StickyCountDownAnimation(textView, startCount);
+		} else {
+			if(sInstance.mListener != null) {
+				sInstance.mListener.onCountDownStolen(sInstance);
+			}
+			sInstance.mTextView = textView;
+			sInstance.setStartCount(startCount);
+		}
+		sInstance.setCountDownListener(listener);
+		return sInstance;
+	}
+
 
 	private TextView mTextView;
 	private Animation mAnimation;
 	private int mStartCount;
 	private int mCurrentCount;
+	private boolean mRunning = false;
 	private CountDownListener mListener;
 
 	private Handler mHandler = new Handler();
 
 	private final Runnable mCountDown = new Runnable() {
 		public void run() {
+			Log.d("StickyCountDown", "Count: " + mCurrentCount);
 			if (mCurrentCount > 0) {
 				mTextView.setText(mCurrentCount + "");
+				mTextView.setVisibility(View.VISIBLE);
 				mTextView.startAnimation(mAnimation);
 				mCurrentCount--;
 			} else {
+				mRunning = false;
 				mTextView.setVisibility(View.GONE);
 				if (mListener != null)
-					mListener.onCountDownEnd(CountDownAnimation.this);
+					mListener.onCountDownEnd(StickyCountDownAnimation.this);
 			}
 		}
 	};
@@ -67,7 +92,7 @@ public class CountDownAnimation {
 	 * @param startCount
 	 *            The starting count number
 	 */
-	public CountDownAnimation(TextView textView, int startCount) {
+	private StickyCountDownAnimation(TextView textView, int startCount) {
 		this.mTextView = textView;
 		this.mStartCount = startCount;
 
@@ -81,8 +106,7 @@ public class CountDownAnimation {
 	public void start() {
 		mHandler.removeCallbacks(mCountDown);
 
-		mTextView.setText(mStartCount + "");
-		mTextView.setVisibility(View.VISIBLE);
+		mRunning = true;
 
 		mCurrentCount = mStartCount;
 
@@ -97,7 +121,7 @@ public class CountDownAnimation {
 	 */
 	public void cancel() {
 		mHandler.removeCallbacks(mCountDown);
-
+		mRunning = false;
 		mTextView.setText("");
 		mTextView.setVisibility(View.GONE);
 	}
@@ -147,6 +171,10 @@ public class CountDownAnimation {
 		mListener = listener;
 	}
 
+	public boolean isRunning() {
+		return mRunning;
+	}
+
 	/**
 	 * A count down listener receives notifications from a count down animation.
 	 * Notifications indicate count down animation related events, such as the
@@ -159,6 +187,7 @@ public class CountDownAnimation {
 		 * @param animation
 		 *            The count down animation which reached its end.
 		 */
-		void onCountDownEnd(CountDownAnimation animation);
+		void onCountDownEnd(StickyCountDownAnimation animation);
+		void onCountDownStolen(StickyCountDownAnimation animation);
 	}
 }

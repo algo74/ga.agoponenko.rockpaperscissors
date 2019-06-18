@@ -6,6 +6,8 @@ public class GameModel {
     private GameStore mStore = GameStore.getInstance();
     private boolean mEngineMoveReady;
     private boolean mEngineMoveShown;
+    private int mPlayerScore = 0;
+    private int mEngineScore = 0;
     private Move mEngineMove;
 
     public static GameModel getInstance() {
@@ -17,13 +19,22 @@ public class GameModel {
     }
 
     public void prepareEngineMove(MoveCallback callback) {
-        if (BuildConfig.DEBUG && mEngineMoveReady) {
-            throw new AssertionError("Requested engine move while it was ready");
+        if (mEngineMoveReady) {
+            callback.onEngineMoveReady(mEngineMove);
+        } else {
+            Move move = Move.val[(int)(Math.random() * Move.size)];
+            mEngineMove = move;
+            mEngineMoveReady = true;
+            callback.onEngineMoveReady(move);
         }
-        Move move = Move.val[(int)(Math.random() * Move.size)];
-        mEngineMove = move;
-        mEngineMoveReady = true;
-        callback.onEngineMoveReady(move);
+    }
+
+    public int getPlayerScore() {
+        return mPlayerScore;
+    }
+
+    public int getEngineScore() {
+        return mEngineScore;
     }
 
     public boolean isEngineMoveReady() {
@@ -50,8 +61,10 @@ public class GameModel {
         if (playerMove == mEngineMove) {
             return Result.DRAW;
         } else if (playerMove.next() == mEngineMove) {
+            mEngineScore++;
             return Result.LOSS;
         } else {
+            mPlayerScore++;
             return Result.WIN;
         }
     }
@@ -59,10 +72,19 @@ public class GameModel {
     public void onPlayerNotMoved() {
         mEngineMoveReady = false;
         mEngineMoveShown = false;
+        mEngineScore++;
     }
 
     public  enum Result {
-        WIN, LOSS, DRAW
+        WIN, LOSS, DRAW;
+
+        public static Result fromInt(int i) {
+            if (i == -1) {
+                return null;
+            } else {
+                return  Result.values()[i];
+            }
+        }
     }
 
     public enum Move {
@@ -73,6 +95,14 @@ public class GameModel {
 
         public Move next() {
             return val[(ordinal() + 1) % size];
+        }
+
+        public static Move fromInt(int i) {
+            if (i == -1) {
+                return null;
+            } else {
+                return  val[i];
+            }
         }
     }
 

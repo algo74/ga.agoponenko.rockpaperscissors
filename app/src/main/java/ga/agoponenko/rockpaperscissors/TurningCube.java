@@ -18,11 +18,12 @@ class TurningCube {
     private CubeSide mSideOld;
     private Context mContext;
     private ValueAnimator mCubeAnimator;
-    private boolean mIsEngineMoveReady;
+    private boolean mEngineMoveReady;
     private GameModel.Move mEngineMove;
-    private ValueAnimator mEngineMoveAnimator;
+    private ValueAnimator mEngineMoveReadyAnimator;
     private ValueAnimator mShowEngineMoveAnimator;
     private final ObjectAnimator mHideCoverAnimator;
+    private boolean mDelayedShowEngineMove = false;
 
     TurningCube(ImageView view1, ImageView view2, ImageView viewCover, Context context,
                 Listener listener) {
@@ -43,12 +44,12 @@ class TurningCube {
         mCubeAnimator.setDuration(2000);
         //mCubeAnimator.setRepeatCount(ValueAnimator.INFINITE);
 
-        mEngineMoveAnimator = ValueAnimator.ofFloat(0f, 1f);
-        mEngineMoveAnimator.setInterpolator(new LinearInterpolator());
-        mEngineMoveAnimator.setDuration(1000);
+        mEngineMoveReadyAnimator = ValueAnimator.ofFloat(0f, 1f);
+        mEngineMoveReadyAnimator.setInterpolator(new LinearInterpolator());
+        mEngineMoveReadyAnimator.setDuration(1000);
         EngineMoveTurner engineMoveTurner = new EngineMoveTurner();
-        mEngineMoveAnimator.addListener(engineMoveTurner);
-        mEngineMoveAnimator.addUpdateListener(engineMoveTurner);
+        mEngineMoveReadyAnimator.addListener(engineMoveTurner);
+        mEngineMoveReadyAnimator.addUpdateListener(engineMoveTurner);
 
         mShowEngineMoveAnimator = ValueAnimator.ofFloat(0f, 1f);
         mShowEngineMoveAnimator.setDuration(1000);
@@ -86,8 +87,11 @@ class TurningCube {
         });
     }
 
-    void startAnimation() {
-        mIsEngineMoveReady = false;
+
+
+    void animateNewTurn() {
+        mEngineMoveReady = false;
+        mDelayedShowEngineMove = false;
         if (mViewCover.getVisibility() == View.VISIBLE) {
             mHideCoverAnimator.start();
         }else {
@@ -97,15 +101,79 @@ class TurningCube {
 
     void onEngineMoveReady(GameModel.Move m) {
         mEngineMove = m;
-        mIsEngineMoveReady = true;
+        mEngineMoveReady = true;
     }
 
     void animateEngineMoveReady() {
-        mEngineMoveAnimator.start();
+        if(mListener.doShowEngineMove()) {
+            mEngineMoveReadyAnimator.start();
+        }
+    }
+
+    void reshowEngineMoveReady(GameModel.Move m) {
+        mEngineMove = m;
+        mEngineMoveReady = true;
+
+        mViewCover.setVisibility(View.VISIBLE);
+        mViewCover.setAlpha(1f);
+        mViewCover.setScaleX(1);
+        mViewCover.setScaleY(1);
+        mViewCover.setRotationY(0);
+        mViewCover.setRotationX(0);
+        mViewCover.setTranslationY(0);
+        mViewCover.setTranslationX(0);
+
+        mViewNew.setVisibility(View.VISIBLE);
+        mViewNew.setScaleX(1);
+        mViewNew.setScaleY(1);
+        mViewNew.setRotationY(0);
+        mViewNew.setRotationX(0);
+        mViewNew.setTranslationY(0);
+        mViewNew.setTranslationX(0);
+
+        mViewOld.setVisibility(View.GONE);
     }
 
     void animateShowEngineMove() {
-        mShowEngineMoveAnimator.start();
+        //mEngineMoveReadyAnimator.cancel();
+        if (mEngineMoveReadyAnimator.isStarted()) {
+            mDelayedShowEngineMove = true;
+            Log.d("TurningCube", "delayed animation");
+        } else {
+            mShowEngineMoveAnimator.start();
+        }
+    }
+
+    void reshowEngineMove(GameModel.Move m) {
+        mEngineMove = m;
+        mEngineMoveReady = true;
+
+        float size = mViewNew.getWidth() * 0.9f;
+        // make sure we won't go away from the screen
+        View v = (View) mViewCover.getParent();
+        float sizeX = Math.min(size, mViewNew.getLeft());
+        float sizeY = Math.min(size, v.getHeight() - mViewCover.getBottom());
+
+        mViewNew.setVisibility(View.VISIBLE);
+        mViewNew.setScaleX(1);
+        mViewNew.setScaleY(1);
+        mViewNew.setRotationY(0);
+        mViewNew.setRotationX(0);
+        mViewNew.setTranslationY(0);
+        mViewNew.setTranslationX(0);
+
+        mViewOld.setVisibility(View.GONE);
+
+        mViewCover.setVisibility(View.VISIBLE);
+        mViewCover.setAlpha(1f);
+        mViewCover.setScaleX(1);
+        mViewCover.setScaleY(1);
+        mViewCover.setRotationY(0);
+        mViewCover.setRotationX(0);
+        mViewCover.setTranslationY(sizeY);
+        mViewCover.setTranslationX(-sizeX);
+
+        mSideNew.setValue(mEngineMove);
     }
 
     private class CubeSide {
@@ -181,6 +249,11 @@ class TurningCube {
         @Override
         public void onAnimationEnd(Animator animation) {
             mListener.onEngineMoveReadyAnimationEnd();
+            if (mDelayedShowEngineMove) {
+                mDelayedShowEngineMove = false;
+                Log.d("Turning cube", "making delayed animation");
+                mShowEngineMoveAnimator.start();
+            }
         }
 
         @Override
@@ -226,6 +299,7 @@ class TurningCube {
             View v = (View) mViewCover.getParent();
             mSizeX = Math.min(size, mViewCover.getLeft());
             mSizeY = Math.min(size, v.getHeight() - mViewCover.getBottom());
+            Log.d("EngineMoveShower", "sizeX: " + mSizeX + ", sizeY: " + mSizeY);
 
             mViewNew.setVisibility(View.VISIBLE);
             mViewNew.setScaleX(1);
@@ -386,7 +460,7 @@ class TurningCube {
 
         @Override
         public void onAnimationEnd(Animator animation) {
-            if (mIsEngineMoveReady) {
+            if (mEngineMoveReady) {
                 animateEngineMoveReady();
             } else {
                 mCubeAnimator.start();
@@ -430,5 +504,6 @@ class TurningCube {
 
     interface Listener {
         void onEngineMoveReadyAnimationEnd();
+        boolean doShowEngineMove();
     }
 }

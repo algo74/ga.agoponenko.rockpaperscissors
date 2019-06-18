@@ -1,5 +1,6 @@
 package ga.agoponenko.rockpaperscissors;
 
+import android.content.res.Resources;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
@@ -7,6 +8,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
 import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
 import android.widget.Button;
@@ -14,31 +16,79 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 public class GameFragment extends Fragment implements GameModel.MoveCallback, TurningCube.Listener {
-    private static final int COUNT = 3;
+    private static final String SAVED_STATE = "mState";
+    private static final String SAVED_RESULT = "mResult";
+    private static final String SAVED_PLAYER_MOVE = "mPlayerMove";
+    private static final String SAVED_ENGINE_MOVE = "mEngineMove";
+    private static final int COUNT = 4;
 
     private TurningCube mTurningCube;
     private GameModel mGameModel = GameModel.getInstance();
     private Button mTurnButton;
-    private CountDownAnimation mCountDownAnimation;
+    private StickyCountDownAnimation mCountDownAnimation;
     private View mChoicesView;
     private ImageView mPlayerResultView;
     private ImageView mEngineResultView;
     private Animation mShowResultAnimation;
     private Animation mHideResultAnimation;
+    private Animation mShowPlayerMoveAnimation;
+    private Animation mHidePlayerMoveAnimation;
     private TextView mEngineScoreView;
     private TextView mPlayerScoreView;
 
+    /*
+     * 0 - awaiting new turn
+     * 1 - spinning cube
+     * 2 - engine move shown
+     * 3 - showing results (and awaiting new turn)
+     */
+    private int mState;
+    private GameModel.Move mEngineMove = null;
+    private GameModel.Move mPlayerMove = null;
+    private GameModel.Result mResult;
+    private boolean mIsStopped;
+
     private int mPlayerScore = 0;
     private int mEngineScore = 0;
+    private ImageView mPlayerMoveView;
+    private Resources mResources;
 
     public GameFragment() {
         // Required empty public constructor
     }
 
     @Override
+    public void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putInt(SAVED_STATE, mState);
+        outState.putInt(SAVED_RESULT, mResult == null ? -1 : mResult.ordinal());
+        outState.putInt(SAVED_ENGINE_MOVE, mEngineMove == null ? -1 : mEngineMove.ordinal());
+        outState.putInt(SAVED_PLAYER_MOVE, mPlayerMove == null ? -1 : mPlayerMove.ordinal());
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        mIsStopped = false;
+
+    }
+
+    @Override
+    public void onStop() {
+        mCountDownAnimation.setCountDownListener(null);
+        mIsStopped = true;
+        super.onStop();
+    }
+
+    @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_game, container, false);
+
+        mResources = getActivity().getResources();
+
+        mPlayerScore = mGameModel.getPlayerScore();
+        mEngineScore = mGameModel.getEngineScore();
 
         mTurningCube = new TurningCube((ImageView) view.findViewById(R.id.cubeView1),
                                        (ImageView) view.findViewById(R.id.cubeView2),
@@ -50,11 +100,7 @@ public class GameFragment extends Fragment implements GameModel.MoveCallback, Tu
         mTurnButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mTurnButton.setVisibility(View.INVISIBLE);
-                mPlayerResultView.startAnimation(mHideResultAnimation);
-                mEngineResultView.startAnimation(mHideResultAnimation);
-                animateCube();
-                mGameModel.prepareEngineMove(GameFragment.this);
+                startNewTurn();
             }
         });
 
@@ -78,23 +124,25 @@ public class GameFragment extends Fragment implements GameModel.MoveCallback, Tu
             }
         });
 
-         mCountDownAnimation =
-               new CountDownAnimation((TextView) view.findViewById(R.id.textViewCountDown),
-                                                      COUNT);
-         mCountDownAnimation.setCountDownListener(new CountDownAnimation.CountDownListener() {
-             @Override
-             public void onCountDownEnd(CountDownAnimation animation) {
-                 Log.d("CountDown", "Timed out");
-                 mGameModel.onPlayerNotMoved();
-                 mPlayerResultView.setImageDrawable(getActivity().getResources()
-                                                                 .getDrawable(R.drawable.ic_loss));
-                 mEngineResultView.setImageDrawable(getActivity().getResources()
-                                                                 .getDrawable(R.drawable.ic_win));
-                 mPlayerScore++;
-                 mPlayerScoreView.setText(""+ mPlayerScore);
-                 commonResultActions();
-             }
-         });
+        mCountDownAnimation = StickyCountDownAnimation.steal(
+              (TextView) view.findViewById(R.id.textViewCountDown),
+              COUNT,
+              new StickyCountDownAnimation.CountDownListener() {
+                  @Override
+                  public void onCountDownEnd(StickyCountDownAnimation animation) {
+                      if (!mIsStopped) {
+                          onPlayerTimedOut();
+                      }
+                  }
+
+                  @Override
+                  public void onCountDownStolen(
+                        StickyCountDownAnimation animation) {
+                  }
+              });
+
+        mPlayerResultView = view.findViewById(R.id.playerResultView);
+        mEngineResultView = view.findViewById(R.id.engineResultView);
 
         mShowResultAnimation = new AlphaAnimation(0.0f, 1.0f);
         mShowResultAnimation.setFillAfter(true);
@@ -103,64 +151,198 @@ public class GameFragment extends Fragment implements GameModel.MoveCallback, Tu
         mHideResultAnimation.setFillAfter(true);
         mHideResultAnimation.setDuration(300);
 
-        mPlayerResultView = view.findViewById(R.id.playerResultView);
-        mEngineResultView = view.findViewById(R.id.engineResultView);
-
         mEngineScoreView = view.findViewById(R.id.engineScoreView);
         mEngineScoreView.setText("" + mEngineScore);
         mPlayerScoreView = view.findViewById(R.id.playerScoreView);
         mPlayerScoreView.setText("" + mPlayerScore);
 
+        mPlayerMoveView = view.findViewById(R.id.playerMoveView);
+        mShowPlayerMoveAnimation = new AlphaAnimation(0.0f, 1.0f);
+        mShowPlayerMoveAnimation.setFillAfter(true);
+        mShowPlayerMoveAnimation.setDuration(500);
+        mShowPlayerMoveAnimation.setAnimationListener(new Animation.AnimationListener() {
+            @Override
+            public void onAnimationStart(Animation animation) {
+            }
+            @Override
+            public void onAnimationEnd(Animation animation) {
+                mTurnButton.setVisibility(View.VISIBLE);
+            }
+            @Override
+            public void onAnimationRepeat(Animation animation) {
+            }
+        });
+        mHidePlayerMoveAnimation = new AlphaAnimation(1.0f, 0.0f);
+        mHidePlayerMoveAnimation.setFillAfter(true);
+        mHidePlayerMoveAnimation.setDuration(300);
+
+        // restoring state
+        if (savedInstanceState != null) {
+            mState = savedInstanceState.getInt(SAVED_STATE, 0);
+        }
+
+        final View firstCubeSide = view.findViewById(R.id.cubeView1); // needed in switch twice
+        switch (mState) {
+            case 0: // initial
+                // nothing to do here
+                break;
+            case 1: // spinning cube
+                firstCubeSide.getViewTreeObserver().addOnGlobalLayoutListener(
+                      new ViewTreeObserver.OnGlobalLayoutListener() {
+                          @Override
+                          public void onGlobalLayout() {
+                              if (firstCubeSide.getWidth() > 0) {
+                                  firstCubeSide.getViewTreeObserver()
+                                               .removeOnGlobalLayoutListener(this);
+                                  startNewTurn();
+                              }
+                          }
+                      });
+                break;
+            case 2: // engine move shown
+                // restore engine move
+                mEngineMove = GameModel.Move.fromInt(savedInstanceState.getInt(SAVED_ENGINE_MOVE));
+                mTurningCube.reshowEngineMoveReady(mEngineMove);
+
+                if (mCountDownAnimation.isRunning()) {
+                    // let the count down finish
+                    mChoicesView.setVisibility(View.VISIBLE);
+                    mTurnButton.setVisibility(View.INVISIBLE);
+                } else { // player timed out
+                    // show result
+                    Log.d("GameFragment restore", "Case 2b");
+                    onPlayerTimedOut();
+                }
+                break;
+            case 3: // result shown
+                mEngineMove = GameModel.Move.fromInt(savedInstanceState.getInt(SAVED_ENGINE_MOVE));
+                mPlayerMove = GameModel.Move.fromInt(savedInstanceState.getInt(SAVED_PLAYER_MOVE));
+                mResult = GameModel.Result.fromInt(savedInstanceState.getInt(SAVED_RESULT));
+
+                mTurnButton.setVisibility(View.INVISIBLE);
+
+                if (mPlayerMove == null) {
+                    mTurningCube.reshowEngineMoveReady(mEngineMove);
+                } else {
+                    firstCubeSide.getViewTreeObserver().addOnGlobalLayoutListener(
+                          new ViewTreeObserver.OnGlobalLayoutListener() {
+                              @Override
+                              public void onGlobalLayout() {
+                                  if (firstCubeSide.getWidth() > 0) {
+                                      firstCubeSide.getViewTreeObserver()
+                                                   .removeOnGlobalLayoutListener(this);
+                                      mTurningCube.reshowEngineMove(mEngineMove);
+                                  }
+                              }
+                          });
+                }
+
+                showResult(mPlayerMove, mResult);
+        }
+
         return view;
+    }
+
+    private void startNewTurn() {
+        mState = 1;
+        mEngineMove = null;
+        mPlayerMove = null;
+        mTurnButton.setVisibility(View.INVISIBLE);
+        mPlayerResultView.startAnimation(mHideResultAnimation);
+        mEngineResultView.startAnimation(mHideResultAnimation);
+        mPlayerMoveView.startAnimation(mHidePlayerMoveAnimation);
+        mTurningCube.animateNewTurn();
+        mGameModel.prepareEngineMove(GameFragment.this);
+    }
+
+    @Override
+    public boolean doShowEngineMove() {
+        if(mIsStopped) {
+            Log.d("GameFragment", "stopped, not showing engine move");
+            return false;
+        }
+        mState = 2;
+        mGameModel.onEngineMoveShown();
+        mChoicesView.setVisibility(View.VISIBLE);
+        mCountDownAnimation.start();
+        return true;
     }
 
     private void makePlayerMove(GameModel.Move m) {
         mCountDownAnimation.cancel();
         GameModel.Result result = mGameModel.onPlayerMove(m);
-        // show result
-        switch (result) {
-            case WIN:
-                mPlayerResultView.setImageDrawable(getActivity().getResources().getDrawable(R.drawable.ic_win));
-                mEngineResultView.setImageDrawable(getActivity().getResources().getDrawable(R.drawable.ic_loss));
-                mPlayerScore++;
-                mPlayerScoreView.setText(""+ mPlayerScore);
-                break;
-            case LOSS:
-                mPlayerResultView.setImageDrawable(getActivity().getResources().getDrawable(R.drawable.ic_loss));
-                mEngineResultView.setImageDrawable(getActivity().getResources().getDrawable(R.drawable.ic_win));
-                mEngineScore++;
-                mEngineScoreView.setText(""+ mEngineScore);
-                break;
-            case DRAW:
-                mPlayerResultView.setImageDrawable(getActivity().getResources().getDrawable(R.drawable.ic_draw));
-                mEngineResultView.setImageDrawable(getActivity().getResources().getDrawable(R.drawable.ic_draw));
-                break;
-        }
-        commonResultActions();
+        commonResultActions(m, result);
         mTurningCube.animateShowEngineMove();
     }
 
-    private void commonResultActions() {
+    private void onPlayerTimedOut() {
+        Log.d("CountDown", "Timed out");
+        mGameModel.onPlayerNotMoved();
+        commonResultActions(null, GameModel.Result.LOSS);
+    }
+
+    private void commonResultActions(GameModel.Move m, GameModel.Result result) {
+        mState = 3;
+        mResult = result;
+        mPlayerMove = m;
+        if (result == GameModel.Result.WIN) {
+            mPlayerScore++;
+        } else if (result == GameModel.Result.LOSS) {
+            mEngineScore++;
+        }
+        showResult(m,result);
+    }
+
+    private void showResult(GameModel.Move m, GameModel.Result result) {
+        int drawable;
+        if (m == null) {
+            drawable =  R.drawable.hand_x;
+        } else {
+            switch (m) {
+                case SCISSORS:
+                    drawable = R.drawable.hand_scissors;
+                    break;
+                case PAPER:
+                    drawable = R.drawable.hand_paper;
+                    break;
+                default:
+                    drawable = R.drawable.hand_rock;
+                    break;
+            }
+        }
+        mPlayerMoveView.setImageDrawable(mResources.getDrawable(drawable));
+        mPlayerMoveView.startAnimation(mShowPlayerMoveAnimation);
+                                        // ^ will call mTurnButton.setVisibility(View.VISIBLE)
+                                        //   when done
+        switch (result) {
+            case WIN:
+                mPlayerResultView.setImageDrawable(mResources.getDrawable(R.drawable.ic_win));
+                mEngineResultView.setImageDrawable(mResources.getDrawable(R.drawable.ic_loss));
+                break;
+            case LOSS:
+                mPlayerResultView.setImageDrawable(mResources.getDrawable(R.drawable.ic_loss));
+                mEngineResultView.setImageDrawable(mResources.getDrawable(R.drawable.ic_win));
+                break;
+            case DRAW:
+                mPlayerResultView.setImageDrawable(mResources.getDrawable(R.drawable.ic_draw));
+                mEngineResultView.setImageDrawable(mResources.getDrawable(R.drawable.ic_draw));
+                break;
+        }
+        mPlayerScoreView.setText(""+ mPlayerScore);
+        mEngineScoreView.setText(""+ mEngineScore);
         mChoicesView.setVisibility(View.GONE);
         mPlayerResultView.startAnimation(mShowResultAnimation);
         mEngineResultView.startAnimation(mShowResultAnimation);
-        mTurnButton.setVisibility(View.VISIBLE);
     }
 
-    private void animateCube() {
-        mTurnButton.setVisibility(View.GONE);
-        mTurningCube.startAnimation();
-    }
 
     @Override
     public void onEngineMoveReady(GameModel.Move m) {
+        mEngineMove = m;
         mTurningCube.onEngineMoveReady(m);
     }
 
-
     @Override
     public void onEngineMoveReadyAnimationEnd() {
-        mChoicesView.setVisibility(View.VISIBLE);
-        mCountDownAnimation.start();
     }
 }
