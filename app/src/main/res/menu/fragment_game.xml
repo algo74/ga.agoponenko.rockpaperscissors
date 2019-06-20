@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:id="@+id/choose_player"
+        android:icon="@drawable/ic_people"
+        app:iconTint="?android:attr/textColorPrimary"
+        android:title="Choose player"
+        app:showAsAction="ifRoom|withText" />
+    <item
+        android:id="@+id/reset_score"
+        android:title="Reset score" />
+</menu>

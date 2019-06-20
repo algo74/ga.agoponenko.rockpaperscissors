@@ -6,10 +6,21 @@
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>
+
+
     </style>
 
     <style name="ChoiceButton" parent="@style/Widget.AppCompat.Button.Colored">
         <item name="backgroundTint">@color/colorPrimary</item>
+        <item name = "iconTint">?android:attr/textColorPrimary</item>
+
+    </style>
+
+    <style name="ListButton" parent="@style/Widget.AppCompat.Button.Colored">
+        <item name="backgroundTint">@color/colorPrimary</item>
+        <item name = "iconTint">?android:attr/textColorPrimary</item>
+        <item name = "android:minWidth">5sp</item>
+        <item name = "android:textSize">8sp</item>
     </style>
 
 </resources>

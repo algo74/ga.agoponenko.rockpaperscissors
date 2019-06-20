@@ -1,29 +1,39 @@
 package ga.agoponenko.rockpaperscissors;
 
+import android.app.Activity;
+import android.content.Intent;
 import android.content.res.Resources;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
 import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.TextSwitcher;
 import android.widget.TextView;
+
 
 public class GameFragment extends Fragment implements GameModel.MoveCallback, TurningCube.Listener {
     private static final String SAVED_STATE = "mState";
     private static final String SAVED_RESULT = "mResult";
     private static final String SAVED_PLAYER_MOVE = "mPlayerMove";
     private static final String SAVED_ENGINE_MOVE = "mEngineMove";
+    private static final int REQUEST_CHANGE_PLAYER = 0;
     private static final int COUNT = 4;
 
     private TurningCube mTurningCube;
-    private GameModel mGameModel = GameModel.getInstance();
+    private GameModel mGameModel;
     private Button mTurnButton;
     private StickyCountDownAnimation mCountDownAnimation;
     private View mChoicesView;
@@ -33,8 +43,8 @@ public class GameFragment extends Fragment implements GameModel.MoveCallback, Tu
     private Animation mHideResultAnimation;
     private Animation mShowPlayerMoveAnimation;
     private Animation mHidePlayerMoveAnimation;
-    private TextView mEngineScoreView;
-    private TextView mPlayerScoreView;
+    private TextSwitcher mEngineScoreView;
+    private TextSwitcher mPlayerScoreView;
 
     /*
      * 0 - awaiting new turn
@@ -58,6 +68,13 @@ public class GameFragment extends Fragment implements GameModel.MoveCallback, Tu
     }
 
     @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setHasOptionsMenu(true);
+        mGameModel = GameModel.getInstance(getActivity());
+    }
+
+    @Override
     public void onSaveInstanceState(@NonNull Bundle outState) {
         super.onSaveInstanceState(outState);
         outState.putInt(SAVED_STATE, mState);
@@ -67,17 +84,37 @@ public class GameFragment extends Fragment implements GameModel.MoveCallback, Tu
     }
 
     @Override
-    public void onStart() {
-        super.onStart();
-        mIsStopped = false;
-
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        super.onCreateOptionsMenu(menu, inflater);
+        inflater.inflate(R.menu.fragment_game, menu);
     }
 
     @Override
-    public void onStop() {
-        mCountDownAnimation.setCountDownListener(null);
-        mIsStopped = true;
-        super.onStop();
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.choose_player:
+                Intent intent = new Intent(getActivity(), PlayersActivity.class);
+                startActivityForResult(intent, REQUEST_CHANGE_PLAYER);
+                return true;
+            case R.id.reset_score:
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if(resultCode != Activity.RESULT_OK) {
+            return;
+        }
+
+        if(requestCode == REQUEST_CHANGE_PLAYER) {
+            int result = data.getIntExtra(Intent.EXTRA_RETURN_RESULT, PlayersFragment.RESULT_NOT_CHANGED);
+            if (result == PlayersFragment.RESULT_PLAYER_SWITCHED) {
+                resetGame();
+            }
+        }
     }
 
     @Override
@@ -86,9 +123,6 @@ public class GameFragment extends Fragment implements GameModel.MoveCallback, Tu
         View view = inflater.inflate(R.layout.fragment_game, container, false);
 
         mResources = getActivity().getResources();
-
-        mPlayerScore = mGameModel.getPlayerScore();
-        mEngineScore = mGameModel.getEngineScore();
 
         mTurningCube = new TurningCube((ImageView) view.findViewById(R.id.cubeView1),
                                        (ImageView) view.findViewById(R.id.cubeView2),
@@ -131,6 +165,7 @@ public class GameFragment extends Fragment implements GameModel.MoveCallback, Tu
                   @Override
                   public void onCountDownEnd(StickyCountDownAnimation animation) {
                       if (!mIsStopped) {
+                          Log.d("onCountDownEnded", "mIsStopped: " + mIsStopped);
                           onPlayerTimedOut();
                       }
                   }
@@ -151,11 +186,22 @@ public class GameFragment extends Fragment implements GameModel.MoveCallback, Tu
         mHideResultAnimation.setFillAfter(true);
         mHideResultAnimation.setDuration(300);
 
-        mEngineScoreView = view.findViewById(R.id.engineScoreView);
-        mEngineScoreView.setText("" + mEngineScore);
-        mPlayerScoreView = view.findViewById(R.id.playerScoreView);
-        mPlayerScoreView.setText("" + mPlayerScore);
+        Animation textAnimationIn = AnimationUtils.loadAnimation(getActivity(),
+                                                                 android.R.anim.slide_in_left);
+        textAnimationIn.setDuration(800);
 
+        Animation textAnimationOut = AnimationUtils.loadAnimation(getActivity(),
+                                                                  android.R.anim.slide_out_right);
+        textAnimationOut.setDuration(800);
+        mEngineScoreView = view.findViewById(R.id.engineScoreView);
+
+        mEngineScoreView.setInAnimation(textAnimationIn);
+        mEngineScoreView.setOutAnimation(textAnimationOut);
+        mPlayerScoreView = view.findViewById(R.id.playerScoreView);
+        mPlayerScoreView.setInAnimation(textAnimationIn);
+        mPlayerScoreView.setOutAnimation(textAnimationOut);
+        mEngineScoreView.setInAnimation(textAnimationIn);
+        mEngineScoreView.setOutAnimation(textAnimationOut);
         mPlayerMoveView = view.findViewById(R.id.playerMoveView);
         mShowPlayerMoveAnimation = new AlphaAnimation(0.0f, 1.0f);
         mShowPlayerMoveAnimation.setFillAfter(true);
@@ -179,29 +225,46 @@ public class GameFragment extends Fragment implements GameModel.MoveCallback, Tu
         // restoring state
         if (savedInstanceState != null) {
             mState = savedInstanceState.getInt(SAVED_STATE, 0);
+            mEngineMove = GameModel.Move.fromInt(savedInstanceState.getInt(SAVED_ENGINE_MOVE, -1));
+            mPlayerMove = GameModel.Move.fromInt(savedInstanceState.getInt(SAVED_PLAYER_MOVE, -1));
+            mResult = GameModel.Result.fromInt(savedInstanceState.getInt(SAVED_RESULT, -1));
         }
 
-        final View firstCubeSide = view.findViewById(R.id.cubeView1); // needed in switch twice
+        return view;
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        mIsStopped = false;
+
+        loadScores();
+
+        final View firstCubeSide = getView().findViewById(R.id.cubeView1); // needed in switch twice
         switch (mState) {
             case 0: // initial
                 // nothing to do here
                 break;
             case 1: // spinning cube
-                firstCubeSide.getViewTreeObserver().addOnGlobalLayoutListener(
-                      new ViewTreeObserver.OnGlobalLayoutListener() {
-                          @Override
-                          public void onGlobalLayout() {
-                              if (firstCubeSide.getWidth() > 0) {
-                                  firstCubeSide.getViewTreeObserver()
-                                               .removeOnGlobalLayoutListener(this);
-                                  startNewTurn();
+                if (firstCubeSide.getWidth() > 0) {
+                    startNewTurn();
+                } else {
+                    firstCubeSide.getViewTreeObserver().addOnGlobalLayoutListener(
+                          new ViewTreeObserver.OnGlobalLayoutListener() {
+                              @Override
+                              public void onGlobalLayout() {
+                                  if (firstCubeSide.getWidth() > 0) {
+                                      firstCubeSide.getViewTreeObserver()
+                                                   .removeOnGlobalLayoutListener(this);
+                                      startNewTurn();
+                                  }
                               }
-                          }
-                      });
+                          });
+                }
                 break;
-            case 2: // engine move shown
+            case 2:
+                // engine move shown
                 // restore engine move
-                mEngineMove = GameModel.Move.fromInt(savedInstanceState.getInt(SAVED_ENGINE_MOVE));
                 mTurningCube.reshowEngineMoveReady(mEngineMove);
 
                 if (mCountDownAnimation.isRunning()) {
@@ -215,32 +278,62 @@ public class GameFragment extends Fragment implements GameModel.MoveCallback, Tu
                 }
                 break;
             case 3: // result shown
-                mEngineMove = GameModel.Move.fromInt(savedInstanceState.getInt(SAVED_ENGINE_MOVE));
-                mPlayerMove = GameModel.Move.fromInt(savedInstanceState.getInt(SAVED_PLAYER_MOVE));
-                mResult = GameModel.Result.fromInt(savedInstanceState.getInt(SAVED_RESULT));
+
 
                 mTurnButton.setVisibility(View.INVISIBLE);
 
                 if (mPlayerMove == null) {
                     mTurningCube.reshowEngineMoveReady(mEngineMove);
                 } else {
-                    firstCubeSide.getViewTreeObserver().addOnGlobalLayoutListener(
-                          new ViewTreeObserver.OnGlobalLayoutListener() {
-                              @Override
-                              public void onGlobalLayout() {
-                                  if (firstCubeSide.getWidth() > 0) {
-                                      firstCubeSide.getViewTreeObserver()
-                                                   .removeOnGlobalLayoutListener(this);
-                                      mTurningCube.reshowEngineMove(mEngineMove);
+                    if (firstCubeSide.getWidth() > 0) {
+                        mTurningCube.reshowEngineMove(mEngineMove);
+                    } else {
+                        firstCubeSide.getViewTreeObserver().addOnGlobalLayoutListener(
+                              new ViewTreeObserver.OnGlobalLayoutListener() {
+                                  @Override
+                                  public void onGlobalLayout() {
+                                      if (firstCubeSide.getWidth() > 0) {
+                                          firstCubeSide.getViewTreeObserver()
+                                                       .removeOnGlobalLayoutListener(this);
+                                          mTurningCube.reshowEngineMove(mEngineMove);
+                                      }
                                   }
-                              }
-                          });
+                              });
+                    }
+
                 }
 
                 showResult(mPlayerMove, mResult);
         }
 
-        return view;
+    }
+
+    @Override
+    public void onStop() {
+        mIsStopped = true;
+        super.onStop();
+    }
+
+    private void loadScores() {
+        mPlayerScore = mGameModel.getPlayerScore();
+        mEngineScore = mGameModel.getEngineScore();
+        mEngineScoreView.setCurrentText("" + mEngineScore);
+        mPlayerScoreView.setCurrentText("" + mPlayerScore);
+
+    }
+    private void resetGame() {
+        // reset countdown
+        mCountDownAnimation.cancel();
+        mState = 0;
+        // reset cube
+        mTurningCube.resetCube();
+        // reset buttons
+        mTurnButton.setVisibility(View.VISIBLE);
+        mChoicesView.setVisibility(View.INVISIBLE);
+        // clear results and player move
+        mPlayerMoveView.setImageDrawable(null);
+        mPlayerResultView.setImageDrawable(null);
+        mEngineResultView.setImageDrawable(null);
     }
 
     private void startNewTurn() {
@@ -287,8 +380,10 @@ public class GameFragment extends Fragment implements GameModel.MoveCallback, Tu
         mPlayerMove = m;
         if (result == GameModel.Result.WIN) {
             mPlayerScore++;
+            mPlayerScoreView.setText(""+ mPlayerScore);
         } else if (result == GameModel.Result.LOSS) {
             mEngineScore++;
+            mEngineScoreView.setText(""+ mEngineScore);
         }
         showResult(m,result);
     }
@@ -328,8 +423,7 @@ public class GameFragment extends Fragment implements GameModel.MoveCallback, Tu
                 mEngineResultView.setImageDrawable(mResources.getDrawable(R.drawable.ic_draw));
                 break;
         }
-        mPlayerScoreView.setText(""+ mPlayerScore);
-        mEngineScoreView.setText(""+ mEngineScore);
+
         mChoicesView.setVisibility(View.GONE);
         mPlayerResultView.startAnimation(mShowResultAnimation);
         mEngineResultView.startAnimation(mShowResultAnimation);

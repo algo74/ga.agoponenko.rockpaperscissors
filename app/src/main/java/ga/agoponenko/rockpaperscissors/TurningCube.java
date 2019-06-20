@@ -87,7 +87,19 @@ class TurningCube {
         });
     }
 
+    public void resetCube() {
+        mViewNew.setVisibility(View.VISIBLE);
+        mViewNew.setScaleX(1);
+        mViewNew.setScaleY(1);
+        mViewNew.setRotationY(0);
+        mViewNew.setRotationX(0);
+        mViewNew.setTranslationY(0);
+        mViewNew.setTranslationX(0);
 
+        mViewOld.setVisibility(View.GONE);
+
+        mViewCover.setVisibility(View.GONE);
+    }
 
     void animateNewTurn() {
         mEngineMoveReady = false;
