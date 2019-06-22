@@ -464,7 +464,7 @@ public class GameFragment extends Fragment implements GameModel.MoveCallback, Tu
     @Override
     public void onEngineMoveReady(GameModel.Move m) {
         mEngineMove = m;
-        mTurningCube.onEngineMoveReady(m);
+        mTurningCube.onEngineMoveReady(m, mGameModel.getBitmap());
     }
 
     @Override

@@ -1,7 +1,10 @@
 package ga.agoponenko.rockpaperscissors;
 
 import android.content.Context;
+import android.graphics.Bitmap;
 import android.util.Log;
+
+import com.google.zxing.WriterException;
 
 import java.util.List;
 
@@ -15,6 +18,7 @@ public class GameModel {
     private boolean mEngineMoveShown;
     private Move mEngineMove;
     private String mPlayerId;
+    private Bitmap mBitmap;
 
     public static GameModel getInstance(Context context) {
         if(sModel !=null) {
@@ -109,6 +113,13 @@ public class GameModel {
                 }
             }
 
+            // prepare QR code
+            long hint = move.ordinal() + 3 * (long) (Math.random() * 10000000000.0);
+            try {
+                mBitmap = QREncoder.encodeAsBitmap("" + hint);
+            } catch (WriterException e) {
+                e.printStackTrace();
+            }
             mEngineMove = move;
             mEngineMoveReady = true;
             callback.onEngineMoveReady(move);
@@ -228,12 +239,16 @@ public class GameModel {
         mStore.updatePlayerHistory(playerHistory);
     }
 
-    public void onGameResumed() {
+    private void onGameResumed() {
         PlayerHistory playerHistory = getCurrentPlayerHistory();
         if (playerHistory.upDownHistory.charAt(playerHistory.upDownHistory.length()-1) != 'B') {
             playerHistory.upDownHistory = chomp(playerHistory.upDownHistory + "B", HistoryRow.maxH);
             mStore.updatePlayerHistory(playerHistory);
         }
+    }
+
+    public Bitmap getBitmap() {
+        return mBitmap;
     }
 
     /**

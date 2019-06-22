@@ -4,6 +4,7 @@ import android.animation.Animator;
 import android.animation.ObjectAnimator;
 import android.animation.ValueAnimator;
 import android.content.Context;
+import android.graphics.Bitmap;
 import android.util.Log;
 import android.view.View;
 import android.view.animation.LinearInterpolator;
@@ -24,6 +25,7 @@ class TurningCube {
     private ValueAnimator mShowEngineMoveAnimator;
     private final ObjectAnimator mHideCoverAnimator;
     private boolean mDelayedShowEngineMove = false;
+    private Bitmap mBitmap;
 
     TurningCube(ImageView view1, ImageView view2, ImageView viewCover, Context context,
                 Listener listener) {
@@ -115,9 +117,10 @@ class TurningCube {
         }
     }
 
-    void onEngineMoveReady(GameModel.Move m) {
+    void onEngineMoveReady(GameModel.Move m, Bitmap bitmap) {
         mEngineMove = m;
         mEngineMoveReady = true;
+        mBitmap = bitmap;
     }
 
     private void animateEngineMoveReady() {
@@ -248,6 +251,8 @@ class TurningCube {
             mViewCover.setRotationX(0);
             mViewCover.setTranslationY(0);
             mViewCover.setTranslationX(0);
+
+            mViewCover.setImageBitmap(mBitmap);
 
             int distance = 4000;
             float scale = mContext.getResources().getDisplayMetrics().density;
