@@ -4,7 +4,7 @@
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="start">Next Turn</string>
-    <string name="slash">/</string>
+    <string name="slash">:</string>
     <string name="player_edit_title">Edit Player</string>
     <string name="save">Save</string>
     <string name="cancel">Cancel</string>

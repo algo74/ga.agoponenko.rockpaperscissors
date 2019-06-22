@@ -6,89 +6,135 @@
     android:layout_height="match_parent"
     tools:context=".GameActivity">
 
-    <TextView
-        android:id="@+id/textView"
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:id="@+id/linearLayout"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:layout_marginEnd="8dp"
-        android:layout_marginBottom="8dp"
-        android:text="@string/slash"
-        android:textSize="36sp"
+        android:background="#DAEEE9D8"
+        android:orientation="horizontal"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <TextSwitcher
-        android:id="@+id/engineScoreView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
-        android:layout_marginEnd="8dp"
-        android:layout_marginBottom="8dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/textView"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        tools:text="119" >
+        app:layout_constraintTop_toTopOf="parent">
 
         <TextView
+            android:id="@+id/textView2"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:layout_marginStart="8dp"
+            android:layout_marginEnd="16dp"
+            android:layout_weight="1"
+            android:fontFamily="sans-serif-condensed-medium"
+            android:text="AndroBrain"
+            android:textAlignment="center"
+            android:textColor="@color/colorPrimaryDark"
+            android:textSize="22sp"
+            android:typeface="sans" />
+
+        <TextSwitcher
+            android:id="@+id/engineScoreView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textSize="36sp"
-            tools:text="119"/>
+            android:layout_marginTop="8dp"
+            android:layout_marginEnd="8dp"
+            android:layout_marginBottom="8dp"
+            tools:text="119">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
+                android:textAlignment="textEnd"
+                android:textColor="@color/colorAccent"
+                android:textSize="30sp"
+                tools:text="119" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAlignment="textEnd"
+                android:textColor="@color/colorAccent"
+                android:textSize="30sp" />
+
+        </TextSwitcher>
+
 
         <TextView
+            android:id="@+id/textView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textSize="36sp" />
+            android:layout_gravity="center_vertical"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="8dp"
+            android:text="@string/slash"
+            android:textColor="@color/colorPrimaryDark"
+            android:textSize="30sp" />
 
-    </TextSwitcher>
+        <TextSwitcher
+            android:id="@+id/playerScoreView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="8dp"
+            tools:text="20">
 
-    <TextSwitcher
-        android:id="@+id/playerScoreView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
-        android:layout_marginTop="16dp"
-        android:layout_marginEnd="8dp"
-        android:layout_marginBottom="8dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/textView"
-        app:layout_constraintTop_toTopOf="parent"
-        tools:text="20">
 
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
+                android:textAlignment="textStart"
+                android:textColor="@color/colorAccent"
+                android:textSize="30sp"
+                tools:text="119" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAlignment="textStart"
+                android:textColor="@color/colorAccent"
+                android:textSize="30sp" />
+
+        </TextSwitcher>
 
         <TextView
-            android:layout_width="wrap_content"
+            android:id="@+id/playerNameView"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:textSize="36sp"
-            tools:text="119"/>
+            android:layout_gravity="center_vertical"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="8dp"
+            android:layout_weight="1"
+            android:fontFamily="sans-serif-condensed-medium"
+            android:textAlignment="center"
+            android:textColor="@color/colorPrimaryDark"
+            android:textSize="22sp"
+            android:typeface="sans"
+            tools:text="Alexander Goponenko" />
+    </LinearLayout>
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textSize="36sp" />
-
-    </TextSwitcher>
 
     <TextView
         android:id="@+id/textViewCountDown"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
         android:layout_marginEnd="8dp"
         android:layout_marginBottom="8dp"
+        android:fontFamily="sans-serif-smallcaps"
+        android:textAllCaps="false"
         android:textColor="@color/colorPrimaryDark"
-        android:textSize="86sp"
+        android:textSize="86dp"
+        android:typeface="normal"
         android:visibility="gone"
         app:layout_constraintBottom_toTopOf="@+id/bNewTurn"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/textView"
-        tools:text="3"
+        app:layout_constraintTop_toBottomOf="@id/linearLayout"
+        tools:text="get set"
         tools:visibility="visible" />
 
     <Button
@@ -154,7 +200,7 @@
         android:layout_marginBottom="8dp"
         android:background="@color/colorRockCubeBg"
         android:padding="@dimen/cubePadding"
-        app:layout_constraintBottom_toTopOf="@+id/textView"
+        app:layout_constraintBottom_toTopOf="@id/linearLayout"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
@@ -172,13 +218,13 @@
         android:background="@color/colorPaperCubeBg"
         android:padding="@dimen/cubePadding"
         android:visibility="gone"
-        app:layout_constraintBottom_toTopOf="@+id/textView"
+        app:layout_constraintBottom_toTopOf="@id/linearLayout"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:srcCompat="@drawable/natural_paper"
-        tools:visibility="visible"
-        tools:ignore="ContentDescription" />
+        tools:ignore="ContentDescription"
+        tools:visibility="visible" />
 
 
     <ImageView
@@ -193,7 +239,7 @@
         app:layout_constraintBottom_toTopOf="@+id/viewChoices"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/textView"
+        app:layout_constraintTop_toBottomOf="@id/linearLayout"
         tools:ignore="ContentDescription" />
 
     <ImageView
@@ -206,7 +252,7 @@
         android:layout_marginBottom="8dp"
         android:background="@drawable/background_unknown"
         android:visibility="gone"
-        app:layout_constraintBottom_toTopOf="@+id/textView"
+        app:layout_constraintBottom_toTopOf="@id/linearLayout"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
@@ -223,7 +269,7 @@
         android:layout_marginEnd="8dp"
         android:layout_marginBottom="8dp"
         android:visibility="visible"
-        app:layout_constraintBottom_toTopOf="@+id/textView"
+        app:layout_constraintBottom_toTopOf="@id/linearLayout"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@+id/cubeViewCover"
         app:layout_constraintTop_toTopOf="parent"
@@ -241,6 +287,6 @@
         app:layout_constraintBottom_toTopOf="@+id/viewChoices"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@+id/cubeViewCover"
-        app:layout_constraintTop_toBottomOf="@+id/textView" />
+        app:layout_constraintTop_toBottomOf="@id/linearLayout" />
 
 </android.support.constraint.ConstraintLayout>

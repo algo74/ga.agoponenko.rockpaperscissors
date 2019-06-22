@@ -17,6 +17,22 @@ public class DbSchema {
         }
     }
 
+    public static final class PlayerHistoryTable {
+        public static final String NAME = "player_history";
+
+        public static final class Cols {
+            public static final String ID = "_id";
+            public static final String PLAYER_ID = "player_id";
+            public static final String LAST_MOVE = "last_move";
+            public static final String UP_DOWN_HISTORY = "up_down";
+            public static final String WIN_LOSS_HISTORY = "win_loss";
+        }
+
+        public static final class Indexes {
+            public static final String PLAYER_INDEX = "ph_player_index";
+        }
+    }
+
     public static final class HistoryTable {
         public static final String NAME = "history";
 

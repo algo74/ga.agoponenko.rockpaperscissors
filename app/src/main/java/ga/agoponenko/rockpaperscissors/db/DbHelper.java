@@ -5,6 +5,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
 import ga.agoponenko.rockpaperscissors.db.DbSchema.HistoryTable;
+import ga.agoponenko.rockpaperscissors.db.DbSchema.PlayerHistoryTable;
 import ga.agoponenko.rockpaperscissors.db.DbSchema.PlayerTable;
 
 public class DbHelper extends SQLiteOpenHelper {
@@ -42,7 +43,18 @@ public class DbHelper extends SQLiteOpenHelper {
         db.execSQL("create index " + HistoryTable.Indexes.KEY_INDEX +
                          " on " + HistoryTable.NAME + "(" + HistoryTable.Cols.KEY + ")");
 
-
+        db.execSQL("create table " + PlayerHistoryTable.NAME + "(" +
+                         "_id integer primary key autoincrement, " +
+                         PlayerHistoryTable.Cols.PLAYER_ID + "," +
+                         PlayerHistoryTable.Cols.LAST_MOVE + "," +
+                         PlayerHistoryTable.Cols.UP_DOWN_HISTORY + "," +
+                         PlayerHistoryTable.Cols.WIN_LOSS_HISTORY + "," +
+                         "FOREIGN KEY(" +
+                         PlayerHistoryTable.Cols.PLAYER_ID +
+                         ") REFERENCES " + PlayerTable.NAME + "(_id))"
+        );
+        db.execSQL("create index " + PlayerHistoryTable.Indexes.PLAYER_INDEX +
+                         " on " + PlayerHistoryTable.NAME + "(" + PlayerHistoryTable.Cols.PLAYER_ID + ")");
     }
 
     @Override

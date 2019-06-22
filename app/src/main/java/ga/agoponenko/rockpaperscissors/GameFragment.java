@@ -43,8 +43,12 @@ public class GameFragment extends Fragment implements GameModel.MoveCallback, Tu
     private Animation mHideResultAnimation;
     private Animation mShowPlayerMoveAnimation;
     private Animation mHidePlayerMoveAnimation;
+    private Animation mPlayerMessageAnimation;
     private TextSwitcher mEngineScoreView;
     private TextSwitcher mPlayerScoreView;
+    private ImageView mPlayerMoveView;
+    private TextView mPlayerNameView;
+    private TextView mPlayerMessageView;
 
     /*
      * 0 - awaiting new turn
@@ -60,7 +64,6 @@ public class GameFragment extends Fragment implements GameModel.MoveCallback, Tu
 
     private int mPlayerScore = 0;
     private int mEngineScore = 0;
-    private ImageView mPlayerMoveView;
     private Resources mResources;
 
     public GameFragment() {
@@ -97,6 +100,11 @@ public class GameFragment extends Fragment implements GameModel.MoveCallback, Tu
                 startActivityForResult(intent, REQUEST_CHANGE_PLAYER);
                 return true;
             case R.id.reset_score:
+                GameModel.Player player = mGameModel.getCurrentPlayer();
+                player.setPlayerScore(0);
+                player.setEngineScore(0);
+                mGameModel.updatePlayer(player);
+                resetGame();
             default:
                 return super.onOptionsItemSelected(item);
         }
@@ -157,15 +165,19 @@ public class GameFragment extends Fragment implements GameModel.MoveCallback, Tu
                 makePlayerMove(GameModel.Move.SCISSORS);
             }
         });
-
+        mPlayerMessageView = view.findViewById(R.id.textViewCountDown);
+        mPlayerMessageAnimation = new AlphaAnimation(0.0f, 1.0f);
+        mPlayerMessageAnimation.setDuration(600);
+        mPlayerMessageAnimation.setFillAfter(true);
+        mPlayerMessageAnimation.setRepeatCount(Animation.INFINITE);
+        mPlayerMessageAnimation.setRepeatMode(Animation.REVERSE);
         mCountDownAnimation = StickyCountDownAnimation.steal(
-              (TextView) view.findViewById(R.id.textViewCountDown),
+              mPlayerMessageView,
               COUNT,
               new StickyCountDownAnimation.CountDownListener() {
                   @Override
                   public void onCountDownEnd(StickyCountDownAnimation animation) {
                       if (!mIsStopped) {
-                          Log.d("onCountDownEnded", "mIsStopped: " + mIsStopped);
                           onPlayerTimedOut();
                       }
                   }
@@ -181,7 +193,7 @@ public class GameFragment extends Fragment implements GameModel.MoveCallback, Tu
 
         mShowResultAnimation = new AlphaAnimation(0.0f, 1.0f);
         mShowResultAnimation.setFillAfter(true);
-        mShowResultAnimation.setDuration(500);
+        mShowResultAnimation.setDuration(700);
         mHideResultAnimation = new AlphaAnimation(1.0f, 0.0f);
         mHideResultAnimation.setFillAfter(true);
         mHideResultAnimation.setDuration(300);
@@ -202,6 +214,7 @@ public class GameFragment extends Fragment implements GameModel.MoveCallback, Tu
         mPlayerScoreView.setOutAnimation(textAnimationOut);
         mEngineScoreView.setInAnimation(textAnimationIn);
         mEngineScoreView.setOutAnimation(textAnimationOut);
+        mPlayerNameView = view.findViewById(R.id.playerNameView);
         mPlayerMoveView = view.findViewById(R.id.playerMoveView);
         mShowPlayerMoveAnimation = new AlphaAnimation(0.0f, 1.0f);
         mShowPlayerMoveAnimation.setFillAfter(true);
@@ -273,7 +286,6 @@ public class GameFragment extends Fragment implements GameModel.MoveCallback, Tu
                     mTurnButton.setVisibility(View.INVISIBLE);
                 } else { // player timed out
                     // show result
-                    Log.d("GameFragment restore", "Case 2b");
                     onPlayerTimedOut();
                 }
                 break;
@@ -315,10 +327,12 @@ public class GameFragment extends Fragment implements GameModel.MoveCallback, Tu
     }
 
     private void loadScores() {
-        mPlayerScore = mGameModel.getPlayerScore();
-        mEngineScore = mGameModel.getEngineScore();
+        GameModel.Player currentPlayer = mGameModel.getCurrentPlayer();
+        mPlayerScore = currentPlayer.getPlayerScore();
+        mEngineScore = currentPlayer.getEngineScore();
         mEngineScoreView.setCurrentText("" + mEngineScore);
         mPlayerScoreView.setCurrentText("" + mPlayerScore);
+        mPlayerNameView.setText(currentPlayer.getName());
 
     }
     private void resetGame() {
@@ -334,6 +348,8 @@ public class GameFragment extends Fragment implements GameModel.MoveCallback, Tu
         mPlayerMoveView.setImageDrawable(null);
         mPlayerResultView.setImageDrawable(null);
         mEngineResultView.setImageDrawable(null);
+
+        loadScores();
     }
 
     private void startNewTurn() {
@@ -344,6 +360,11 @@ public class GameFragment extends Fragment implements GameModel.MoveCallback, Tu
         mPlayerResultView.startAnimation(mHideResultAnimation);
         mEngineResultView.startAnimation(mHideResultAnimation);
         mPlayerMoveView.startAnimation(mHidePlayerMoveAnimation);
+        // show player side message
+        mPlayerMessageView.setText("get set");
+        mPlayerMessageView.startAnimation(mPlayerMessageAnimation);
+        mPlayerMessageView.setVisibility(View.VISIBLE);
+        // spin the cube
         mTurningCube.animateNewTurn();
         mGameModel.prepareEngineMove(GameFragment.this);
     }
@@ -351,17 +372,24 @@ public class GameFragment extends Fragment implements GameModel.MoveCallback, Tu
     @Override
     public boolean doShowEngineMove() {
         if(mIsStopped) {
-            Log.d("GameFragment", "stopped, not showing engine move");
             return false;
         }
         mState = 2;
         mGameModel.onEngineMoveShown();
         mChoicesView.setVisibility(View.VISIBLE);
+        // cancel player side message
+        mPlayerMessageView.setText("");
+        mPlayerMessageAnimation.cancel();
+        // start countdown
         mCountDownAnimation.start();
         return true;
     }
 
     private void makePlayerMove(GameModel.Move m) {
+        if(mState != 2) {
+            Log.w("Player moved", "state was " + mState);
+            return;
+        }
         mCountDownAnimation.cancel();
         GameModel.Result result = mGameModel.onPlayerMove(m);
         commonResultActions(m, result);
@@ -369,9 +397,12 @@ public class GameFragment extends Fragment implements GameModel.MoveCallback, Tu
     }
 
     private void onPlayerTimedOut() {
-        Log.d("CountDown", "Timed out");
-        mGameModel.onPlayerNotMoved();
+        if(mState != 2) {
+            Log.w("Player not moved", "state was " + mState);
+            return;
+        }
         commonResultActions(null, GameModel.Result.LOSS);
+        mGameModel.onPlayerNotMoved();
     }
 
     private void commonResultActions(GameModel.Move m, GameModel.Result result) {
@@ -389,6 +420,7 @@ public class GameFragment extends Fragment implements GameModel.MoveCallback, Tu
     }
 
     private void showResult(GameModel.Move m, GameModel.Result result) {
+        mChoicesView.setVisibility(View.GONE);
         int drawable;
         if (m == null) {
             drawable =  R.drawable.hand_x;
@@ -424,7 +456,6 @@ public class GameFragment extends Fragment implements GameModel.MoveCallback, Tu
                 break;
         }
 
-        mChoicesView.setVisibility(View.GONE);
         mPlayerResultView.startAnimation(mShowResultAnimation);
         mEngineResultView.startAnimation(mShowResultAnimation);
     }

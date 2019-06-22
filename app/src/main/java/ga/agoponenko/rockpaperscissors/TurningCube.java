@@ -88,6 +88,10 @@ class TurningCube {
     }
 
     public void resetCube() {
+        mEngineMoveReadyAnimator.cancel();
+        mShowEngineMoveAnimator.cancel();
+        mCubeAnimator.cancel();
+        mHideCoverAnimator.cancel();
         mViewNew.setVisibility(View.VISIBLE);
         mViewNew.setScaleX(1);
         mViewNew.setScaleY(1);
@@ -116,7 +120,7 @@ class TurningCube {
         mEngineMoveReady = true;
     }
 
-    void animateEngineMoveReady() {
+    private void animateEngineMoveReady() {
         if(mListener.doShowEngineMove()) {
             mEngineMoveReadyAnimator.start();
         }
@@ -150,7 +154,6 @@ class TurningCube {
         //mEngineMoveReadyAnimator.cancel();
         if (mEngineMoveReadyAnimator.isStarted()) {
             mDelayedShowEngineMove = true;
-            Log.d("TurningCube", "delayed animation");
         } else {
             mShowEngineMoveAnimator.start();
         }
@@ -263,7 +266,6 @@ class TurningCube {
             mListener.onEngineMoveReadyAnimationEnd();
             if (mDelayedShowEngineMove) {
                 mDelayedShowEngineMove = false;
-                Log.d("Turning cube", "making delayed animation");
                 mShowEngineMoveAnimator.start();
             }
         }
@@ -311,7 +313,6 @@ class TurningCube {
             View v = (View) mViewCover.getParent();
             mSizeX = Math.min(size, mViewCover.getLeft());
             mSizeY = Math.min(size, v.getHeight() - mViewCover.getBottom());
-            Log.d("EngineMoveShower", "sizeX: " + mSizeX + ", sizeY: " + mSizeY);
 
             mViewNew.setVisibility(View.VISIBLE);
             mViewNew.setScaleX(1);
@@ -361,6 +362,7 @@ class TurningCube {
         private int mPhase;
         private float mSize;
         private float reverseDistance;
+        private boolean mCancelled = false;
 
         @Override
         public void onAnimationUpdate(final ValueAnimator animation) {
@@ -368,7 +370,6 @@ class TurningCube {
             float phaseProg;
             if (value <= 1) {
                 if (mPhase != 0) {
-                    Log.d("animation", "Phase 0");
                     setPhase(0);
                     mViewOld.setPivotY(0);
                     mViewOld.setPivotX(mSize);
@@ -378,7 +379,6 @@ class TurningCube {
                 phaseProg = value;
             } else if (value <= 2) {
                 if (mPhase != 1) {
-                    Log.d("animation", "Phase 1");
                     setPhase(1);
                     mViewOld.setPivotY(mSize);
                     mViewOld.setPivotX(mSize * 2);
@@ -388,7 +388,6 @@ class TurningCube {
                 phaseProg = value - 1;
             } else if (value <= 3) {
                 if (mPhase != 2) {
-                    Log.d("animation", "Phase 2");
                     setPhase(2);
                     mViewOld.setPivotY(mSize * 2);
                     mViewOld.setPivotX(mSize);
@@ -457,6 +456,7 @@ class TurningCube {
 
         @Override
         public void onAnimationStart(Animator animation) {
+            mCancelled = false;
             mPhase = -1;
             mViewNew.setVisibility(View.VISIBLE);
             mViewOld.setVisibility(View.VISIBLE);
@@ -467,11 +467,14 @@ class TurningCube {
             mViewOld.setCameraDistance(distance * scale);
             mViewNew.setCameraDistance(distance * scale);
             reverseDistance =  6f / (distance * scale);
-            Log.d("Animation", "Scale coeff: " + reverseDistance);
         }
 
         @Override
         public void onAnimationEnd(Animator animation) {
+            if(mCancelled) {
+                return;
+            }
+
             if (mEngineMoveReady) {
                 animateEngineMoveReady();
             } else {
@@ -481,7 +484,7 @@ class TurningCube {
 
         @Override
         public void onAnimationCancel(Animator animation) {
-            Log.d("Animation", "cancelled");
+            mCancelled = true;
         }
 
         @Override

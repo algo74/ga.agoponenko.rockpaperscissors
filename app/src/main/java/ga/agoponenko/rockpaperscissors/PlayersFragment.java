@@ -142,7 +142,7 @@ public class PlayersFragment extends Fragment {
         public PlayerHolder(LayoutInflater inflater, ViewGroup parent) {
             super(inflater.inflate(R.layout.list_player, parent, false));
             mNameView = itemView.findViewById(R.id.nameView);
-            mScoreView = itemView.findViewById(R.id.scoreView);
+            mScoreView = itemView.findViewById(R.id.scoreLabel);
             itemView.findViewById(R.id.bEdit).setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {

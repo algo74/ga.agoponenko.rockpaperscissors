@@ -12,8 +12,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.CheckBox;
 import android.widget.EditText;
-
-import java.util.Date;
+import android.widget.TextView;
 
 
 public class EditPlayerFragment extends DialogFragment {
@@ -24,6 +23,7 @@ public class EditPlayerFragment extends DialogFragment {
     private GameModel mModel;
     private EditText mNameView;
     private CheckBox mCheckbox;
+    private TextView mScoreView;
 
 
     public EditPlayerFragment() {
@@ -49,6 +49,10 @@ public class EditPlayerFragment extends DialogFragment {
                                .inflate(R.layout.fragment_edit_player, null);
         mNameView = v.findViewById(R.id.editText);
         mNameView.setText(mPlayer.getName());
+        mScoreView = v.findViewById(R.id.scoreView);
+        mScoreView.setText(mPlayer.getEngineScore() + " " +
+                                 getActivity().getResources().getString(R.string.slash) +
+                                 " " + mPlayer.getPlayerScore());
         mCheckbox = v.findViewById(R.id.checkBox);
         return new AlertDialog.Builder(getActivity())
               .setView(v)
