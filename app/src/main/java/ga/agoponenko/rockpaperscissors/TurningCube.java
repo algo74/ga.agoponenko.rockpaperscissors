@@ -5,7 +5,7 @@ import android.animation.ObjectAnimator;
 import android.animation.ValueAnimator;
 import android.content.Context;
 import android.graphics.Bitmap;
-import android.util.Log;
+import android.support.annotation.NonNull;
 import android.view.View;
 import android.view.animation.LinearInterpolator;
 import android.widget.ImageView;
@@ -28,7 +28,7 @@ class TurningCube {
     private Bitmap mBitmap;
 
     TurningCube(ImageView view1, ImageView view2, ImageView viewCover, Context context,
-                Listener listener) {
+                @NonNull Listener listener) {
         mViewNew = view1;
         mViewOld = view2;
         mViewCover = viewCover;
@@ -129,9 +129,12 @@ class TurningCube {
         }
     }
 
-    void reshowEngineMoveReady(GameModel.Move m) {
+    void reshowEngineMoveReady(GameModel.Move m, Bitmap bitmap) {
         mEngineMove = m;
         mEngineMoveReady = true;
+        mBitmap = bitmap;
+
+        mViewCover.setImageBitmap(bitmap);
 
         mViewCover.setVisibility(View.VISIBLE);
         mViewCover.setAlpha(1f);
@@ -162,9 +165,12 @@ class TurningCube {
         }
     }
 
-    void reshowEngineMove(GameModel.Move m) {
+    void reshowEngineMove(GameModel.Move m, Bitmap bitmap) {
         mEngineMove = m;
         mEngineMoveReady = true;
+        mBitmap = bitmap;
+
+        mViewCover.setImageBitmap(bitmap);
 
         float size = mViewNew.getWidth() * 0.9f;
         // make sure we won't go away from the screen
@@ -192,6 +198,8 @@ class TurningCube {
         mViewCover.setTranslationX(-sizeX);
 
         mSideNew.setValue(mEngineMove);
+
+        mListener.onEngineMoveCoverOpen(mViewCover);
     }
 
     private class CubeSide {
@@ -343,6 +351,7 @@ class TurningCube {
 
         @Override
         public void onAnimationEnd(Animator animation) {
+            mListener.onEngineMoveCoverOpen(mViewCover);
         }
 
         @Override
@@ -525,5 +534,6 @@ class TurningCube {
     interface Listener {
         void onEngineMoveReadyAnimationEnd();
         boolean doShowEngineMove();
+        void onEngineMoveCoverOpen(View coverView);
     }
 }

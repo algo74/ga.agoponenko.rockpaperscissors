@@ -246,10 +246,10 @@
         android:id="@+id/cubeViewCover"
         android:layout_width="@dimen/cubeSize"
         android:layout_height="@dimen/cubeSize"
-        android:layout_marginStart="8dp"
-        android:layout_marginTop="8dp"
-        android:layout_marginEnd="8dp"
-        android:layout_marginBottom="8dp"
+        android:layout_marginStart="4dp"
+        android:layout_marginTop="4dp"
+        android:layout_marginEnd="4dp"
+        android:layout_marginBottom="4dp"
         android:background="@drawable/background_unknown"
         android:visibility="gone"
         app:layout_constraintBottom_toTopOf="@id/linearLayout"
@@ -288,5 +288,17 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@+id/cubeViewCover"
         app:layout_constraintTop_toBottomOf="@id/linearLayout" />
+
+    <ImageButton
+        android:id="@+id/bCoverInfo"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="#00000000"
+        android:tint="@color/colorPrimary"
+        android:visibility="gone"
+        app:layout_constraintStart_toEndOf="@+id/cubeViewCover"
+        app:layout_constraintTop_toTopOf="@+id/cubeViewCover"
+        app:srcCompat="@android:drawable/ic_dialog_info"
+        tools:visibility="visible" />
 
 </android.support.constraint.ConstraintLayout>

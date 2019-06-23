@@ -2,10 +2,8 @@
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
     <item>
         <shape>
-            <solid android:color="@color/colorPrimaryDark" />
-            <stroke
-                android:width="15dp"
-                android:color="#000000" />
+            <solid android:color="@android:color/black" />
+
             <stroke
                 android:width="@dimen/cubeBorderThickness"
                 android:color="@color/cubeBorder" />
@@ -20,6 +18,7 @@
     <item>
         <shape>
             <stroke
+                android:color="@android:color/black"
                 android:width="@dimen/cubeBorderThickness"/>
             <corners android:radius="@dimen/cubeRadius" />
             <padding
@@ -31,9 +30,26 @@
     </item>
     <item>
         <shape>
+            <solid android:color="@color/colorPrimaryDark" />
+
             <stroke
                 android:width="@dimen/cubeBorderThickness"
                 android:color="#ffffff"/>
+            <corners android:radius="@dimen/cubeRadius" />
+            <padding
+                android:left="4dp"
+                android:top="4dp"
+                android:right="4dp"
+                android:bottom="4dp" />
+        </shape>
+    </item>
+    <item>
+        <shape>
+            <solid android:color="@android:color/white" />
+
+            <stroke
+                android:width="4dp"
+                android:color="@color/colorPrimaryDark"/>
             <corners android:radius="@dimen/cubeRadius" />
             <padding
                 android:left="8dp"

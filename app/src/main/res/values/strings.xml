@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Rock-Paper-Scissors</string>
+    <string name="app_name">Rock / Paper / Scissors</string>
 
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
@@ -9,4 +9,14 @@
     <string name="save">Save</string>
     <string name="cancel">Cancel</string>
     <string name="delete">Delete</string>
+    <string name="cover_info">
+        This image is a proof that the game is not cheating on you. The QR code hides a
+        positive integer number. The computer move is encoded in the remainder of division of this
+        number by 3:
+        <![CDATA[
+        0 - rock,
+        1 - paper,
+        2 - scissors.
+        ]]>
+    </string>
 </resources>

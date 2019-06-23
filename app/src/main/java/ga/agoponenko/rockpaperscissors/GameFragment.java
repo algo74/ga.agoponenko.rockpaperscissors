@@ -3,6 +3,7 @@ package ga.agoponenko.rockpaperscissors;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.res.Resources;
+import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -19,6 +20,7 @@ import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextSwitcher;
 import android.widget.TextView;
@@ -49,6 +51,7 @@ public class GameFragment extends Fragment implements GameModel.MoveCallback, Tu
     private ImageView mPlayerMoveView;
     private TextView mPlayerNameView;
     private TextView mPlayerMessageView;
+    private ImageButton mCoverInfoButton;
 
     /*
      * 0 - awaiting new turn
@@ -165,6 +168,13 @@ public class GameFragment extends Fragment implements GameModel.MoveCallback, Tu
                 makePlayerMove(GameModel.Move.SCISSORS);
             }
         });
+        mCoverInfoButton = view.findViewById(R.id.bCoverInfo);
+        mCoverInfoButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                showCoverInfo();
+            }
+        });
         mPlayerMessageView = view.findViewById(R.id.textViewCountDown);
         mPlayerMessageAnimation = new AlphaAnimation(0.0f, 1.0f);
         mPlayerMessageAnimation.setDuration(600);
@@ -278,7 +288,7 @@ public class GameFragment extends Fragment implements GameModel.MoveCallback, Tu
             case 2:
                 // engine move shown
                 // restore engine move
-                mTurningCube.reshowEngineMoveReady(mEngineMove);
+                mTurningCube.reshowEngineMoveReady(mEngineMove, mGameModel.getBitmap());
 
                 if (mCountDownAnimation.isRunning()) {
                     // let the count down finish
@@ -290,15 +300,15 @@ public class GameFragment extends Fragment implements GameModel.MoveCallback, Tu
                 }
                 break;
             case 3: // result shown
-
+                final Bitmap bitmap = mGameModel.getBitmap();
 
                 mTurnButton.setVisibility(View.INVISIBLE);
 
                 if (mPlayerMove == null) {
-                    mTurningCube.reshowEngineMoveReady(mEngineMove);
+                    mTurningCube.reshowEngineMoveReady(mEngineMove, bitmap);
                 } else {
                     if (firstCubeSide.getWidth() > 0) {
-                        mTurningCube.reshowEngineMove(mEngineMove);
+                        mTurningCube.reshowEngineMove(mEngineMove, bitmap);
                     } else {
                         firstCubeSide.getViewTreeObserver().addOnGlobalLayoutListener(
                               new ViewTreeObserver.OnGlobalLayoutListener() {
@@ -307,7 +317,7 @@ public class GameFragment extends Fragment implements GameModel.MoveCallback, Tu
                                       if (firstCubeSide.getWidth() > 0) {
                                           firstCubeSide.getViewTreeObserver()
                                                        .removeOnGlobalLayoutListener(this);
-                                          mTurningCube.reshowEngineMove(mEngineMove);
+                                          mTurningCube.reshowEngineMove(mEngineMove, bitmap);
                                       }
                                   }
                               });
@@ -336,6 +346,8 @@ public class GameFragment extends Fragment implements GameModel.MoveCallback, Tu
 
     }
     private void resetGame() {
+        // reset cover info button
+        mCoverInfoButton.setVisibility(View.GONE);
         // reset countdown
         mCountDownAnimation.cancel();
         mState = 0;
@@ -357,6 +369,7 @@ public class GameFragment extends Fragment implements GameModel.MoveCallback, Tu
         mEngineMove = null;
         mPlayerMove = null;
         mTurnButton.setVisibility(View.INVISIBLE);
+        mCoverInfoButton.setVisibility(View.GONE);
         mPlayerResultView.startAnimation(mHideResultAnimation);
         mEngineResultView.startAnimation(mHideResultAnimation);
         mPlayerMoveView.startAnimation(mHidePlayerMoveAnimation);
@@ -460,6 +473,9 @@ public class GameFragment extends Fragment implements GameModel.MoveCallback, Tu
         mEngineResultView.startAnimation(mShowResultAnimation);
     }
 
+    private void showCoverInfo() {
+        startActivity(new Intent(getActivity(), CoverInfoActivity.class));
+    }
 
     @Override
     public void onEngineMoveReady(GameModel.Move m) {
@@ -469,5 +485,14 @@ public class GameFragment extends Fragment implements GameModel.MoveCallback, Tu
 
     @Override
     public void onEngineMoveReadyAnimationEnd() {
+    }
+
+    @Override
+    public void onEngineMoveCoverOpen(View coverView) {
+        if (mState == 3) {
+            mCoverInfoButton.setTranslationX(coverView.getTranslationX());
+            mCoverInfoButton.setTranslationY(coverView.getTranslationY());
+            mCoverInfoButton.setVisibility(View.VISIBLE);
+        }
     }
 }
