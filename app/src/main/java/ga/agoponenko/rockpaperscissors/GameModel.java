@@ -19,7 +19,7 @@ public class GameModel {
     private final GameModelBackgroundThread mBackgroundThread;
     private final Handler mResponseHandler;
     private GameStore mStore;
-    //private Context mContext;
+    private Context mContext;
     private boolean mEngineMoveReady;
     private boolean mEngineMoveShown;
     private Move mEngineMove;
@@ -27,6 +27,7 @@ public class GameModel {
     private Bitmap mBitmap;
 
     private GameModel(Context context) {
+        mContext = context;
         mStore = GameStore.getInstance(context);
         mBackgroundThread = new GameModelBackgroundThread();
         mBackgroundThread.start();
@@ -156,7 +157,8 @@ public class GameModel {
                     // prepare QR code
                     long hint = move.ordinal() + 3 * (long) (Math.random() * 10000000000.0);
                     try {
-                        mBitmap = QREncoder.encodeAsBitmap("" + hint);
+                        mBitmap = QREncoder.encodeAsBitmap("" + hint,
+                                                           mContext.getResources().getDimensionPixelSize(R.dimen.cubeSize)*2);
                     } catch (WriterException e) {
                         e.printStackTrace();
                     }

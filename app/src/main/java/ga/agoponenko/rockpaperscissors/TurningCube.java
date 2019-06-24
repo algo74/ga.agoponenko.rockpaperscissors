@@ -6,6 +6,7 @@ import android.animation.ValueAnimator;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.support.annotation.NonNull;
+import android.util.Log;
 import android.view.View;
 import android.view.animation.LinearInterpolator;
 import android.widget.ImageView;
@@ -177,6 +178,10 @@ class TurningCube {
         View v = (View) mViewCover.getParent();
         float sizeX = Math.min(size, mViewNew.getLeft());
         float sizeY = Math.min(size, v.getHeight() - mViewCover.getBottom());
+
+        Log.d("reshowEngineMove", "sizeY: " + sizeY);
+        Log.d("reshowEngineMove", "parent height: " + v.getHeight());
+        Log.d("reshowEngineMove", "bottom: " + mViewCover.getBottom());
 
         mViewNew.setVisibility(View.VISIBLE);
         mViewNew.setScaleX(1);

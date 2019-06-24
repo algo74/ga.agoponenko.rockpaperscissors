@@ -400,7 +400,7 @@ public class GameFragment extends Fragment implements GameModel.MoveCallback, Tu
 
     private void makePlayerMove(GameModel.Move m) {
         if(mState != 2) {
-            Log.w("Player moved", "state was " + mState);
+            //Log.w("Player moved", "state was " + mState);
             return;
         }
         mCountDownAnimation.cancel();
@@ -433,7 +433,7 @@ public class GameFragment extends Fragment implements GameModel.MoveCallback, Tu
     }
 
     private void showResult(GameModel.Move m, GameModel.Result result) {
-        mChoicesView.setVisibility(View.GONE);
+        mChoicesView.setVisibility(View.INVISIBLE);
         int drawable;
         if (m == null) {
             drawable =  R.drawable.hand_x;

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="cubeSize">250dp</dimen>
+    <dimen name="cubePadding">12dp</dimen>
+    <dimen name="cubeBorderThickness">4dp</dimen>
+    <dimen name="cubeRadius">12dp</dimen>
+    <dimen name="winDrawSize">110dp</dimen>
+    <dimen name="nameFontSize">30sp</dimen>
+    <dimen name="scoreFontSize">60sp</dimen>
+    <dimen name="contDownFontSize">120dp</dimen>
+    <dimen name="sideMargin">24dp</dimen>
+</resources>
