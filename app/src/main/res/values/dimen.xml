@@ -5,7 +5,7 @@
     <dimen name="cubeBorderThickness">3dp</dimen>
     <dimen name="cubeRadius">8dp</dimen>
     <dimen name="winDrawSize">50dp</dimen>
-    <dimen name="nameFontSize">14sp</dimen>
+    <dimen name="nameFontSize">16sp</dimen>
     <dimen name="scoreFontSize">20sp</dimen>
     <dimen name="contDownFontSize">50dp</dimen>
     <dimen name="sideMargin">8dp</dimen>
