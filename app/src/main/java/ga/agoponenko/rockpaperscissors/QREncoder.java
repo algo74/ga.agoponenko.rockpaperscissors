@@ -11,9 +11,9 @@ public class QREncoder {
 
     public final static int WHITE = 0xFFFFFFFF;
     public final static int BLACK = 0xFF000000;
-    public final static int WIDTH = 400;
-    public final static int HEIGHT = 400;
-    public final static String STR = "A string to be encoded as QR code";
+    //public final static int WIDTH = 400;
+    //public final static int HEIGHT = 400;
+    //public final static String STR = "A string to be encoded as QR code";
 
 
 
