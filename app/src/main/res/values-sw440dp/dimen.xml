@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="cubeSize">150dp</dimen>
+    <dimen name="winDrawSize">75dp</dimen>
+    <dimen name="nameFontSize">20sp</dimen>
+    <dimen name="scoreFontSize">28sp</dimen>
+    <dimen name="contDownFontSize">90dp</dimen>
+</resources>

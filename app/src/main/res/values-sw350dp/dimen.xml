@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <dimen name="cubeSize">150dp</dimen>
+    <dimen name="cubeSize">130dp</dimen>
     <dimen name="cubePadding">8dp</dimen>
     <dimen name="cubeBorderThickness">4dp</dimen>
     <dimen name="cubeRadius">10dp</dimen>
-    <dimen name="winDrawSize">75dp</dimen>
-    <dimen name="nameFontSize">20sp</dimen>
-    <dimen name="scoreFontSize">30sp</dimen>
+    <dimen name="winDrawSize">65dp</dimen>
+    <dimen name="nameFontSize">18sp</dimen>
+    <dimen name="scoreFontSize">24sp</dimen>
     <dimen name="contDownFontSize">80dp</dimen>
 </resources>
