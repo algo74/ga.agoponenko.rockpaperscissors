@@ -18,6 +18,9 @@ import android.widget.TextView;
 
 import java.util.List;
 
+import ga.agoponenko.rockpaperscissors.gamemodel.GameModel;
+import ga.agoponenko.rockpaperscissors.gamemodel.Player;
+
 public class PlayersFragment extends Fragment {
     public static final int RESULT_NOT_CHANGED = 0;
     public static final int RESULT_PLAYER_SWITCHED = 1111;
@@ -75,7 +78,7 @@ public class PlayersFragment extends Fragment {
     }
 
     private void updateUI() {
-       List<GameModel.Player> players = mGameModel.getPlayers();
+       List<Player> players = mGameModel.getPlayers();
         if (players.size() == 0) {
             // TODO
         }
@@ -106,13 +109,13 @@ public class PlayersFragment extends Fragment {
 
     private class PlayersAdapter extends RecyclerView.Adapter<PlayerHolder> {
 
-        private List<GameModel.Player> mPlayers;
+        private List<Player> mPlayers;
 
-        public PlayersAdapter(List<GameModel.Player> players) {
+        public PlayersAdapter(List<Player> players) {
             mPlayers = players;
         }
 
-        public void setPlayers(List<GameModel.Player> players) {
+        public void setPlayers(List<Player> players) {
             mPlayers = players;
         }
 
@@ -157,7 +160,7 @@ public class PlayersFragment extends Fragment {
             });
         }
 
-        public void bind(int i, GameModel.Player player) {
+        public void bind(int i, Player player) {
             mId = player.getId();
             int playerScore = player.getPlayerScore();
             int percent = playerScore == 0 ? 0 :

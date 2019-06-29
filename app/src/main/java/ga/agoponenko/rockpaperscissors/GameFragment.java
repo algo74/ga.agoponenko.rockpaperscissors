@@ -25,6 +25,11 @@ import android.widget.ImageView;
 import android.widget.TextSwitcher;
 import android.widget.TextView;
 
+import ga.agoponenko.rockpaperscissors.gamemodel.GameModel;
+import ga.agoponenko.rockpaperscissors.gamemodel.Move;
+import ga.agoponenko.rockpaperscissors.gamemodel.Player;
+import ga.agoponenko.rockpaperscissors.gamemodel.Result;
+
 
 public class GameFragment extends Fragment implements GameModel.MoveCallback, TurningCube.Listener {
     private static final String SAVED_STATE = "mState";
@@ -60,9 +65,9 @@ public class GameFragment extends Fragment implements GameModel.MoveCallback, Tu
      * 3 - showing results (and awaiting new turn)
      */
     private int mState;
-    private GameModel.Move mEngineMove = null;
-    private GameModel.Move mPlayerMove = null;
-    private GameModel.Result mResult;
+    private Move mEngineMove = null;
+    private Move mPlayerMove = null;
+    private Result mResult;
     private boolean mIsStopped;
 
     private int mPlayerScore = 0;
@@ -103,7 +108,7 @@ public class GameFragment extends Fragment implements GameModel.MoveCallback, Tu
                 startActivityForResult(intent, REQUEST_CHANGE_PLAYER);
                 return true;
             case R.id.reset_score:
-                GameModel.Player player = mGameModel.getCurrentPlayer();
+                Player player = mGameModel.getCurrentPlayer();
                 player.setPlayerScore(0);
                 player.setEngineScore(0);
                 mGameModel.updatePlayer(player);
@@ -153,19 +158,19 @@ public class GameFragment extends Fragment implements GameModel.MoveCallback, Tu
         view.findViewById(R.id.bRock).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                makePlayerMove(GameModel.Move.ROCK);
+                makePlayerMove(Move.ROCK);
             }
         });
         view.findViewById(R.id.bPaper).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                makePlayerMove(GameModel.Move.PAPER);
+                makePlayerMove(Move.PAPER);
             }
         });
         view.findViewById(R.id.bScissors).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                makePlayerMove(GameModel.Move.SCISSORS);
+                makePlayerMove(Move.SCISSORS);
             }
         });
         mCoverInfoButton = view.findViewById(R.id.bCoverInfo);
@@ -248,9 +253,9 @@ public class GameFragment extends Fragment implements GameModel.MoveCallback, Tu
         // restoring state
         if (savedInstanceState != null) {
             mState = savedInstanceState.getInt(SAVED_STATE, 0);
-            mEngineMove = GameModel.Move.fromInt(savedInstanceState.getInt(SAVED_ENGINE_MOVE, -1));
-            mPlayerMove = GameModel.Move.fromInt(savedInstanceState.getInt(SAVED_PLAYER_MOVE, -1));
-            mResult = GameModel.Result.fromInt(savedInstanceState.getInt(SAVED_RESULT, -1));
+            mEngineMove = Move.fromInt(savedInstanceState.getInt(SAVED_ENGINE_MOVE, -1));
+            mPlayerMove = Move.fromInt(savedInstanceState.getInt(SAVED_PLAYER_MOVE, -1));
+            mResult = Result.fromInt(savedInstanceState.getInt(SAVED_RESULT, -1));
         }
 
         return view;
@@ -337,7 +342,7 @@ public class GameFragment extends Fragment implements GameModel.MoveCallback, Tu
     }
 
     private void loadScores() {
-        GameModel.Player currentPlayer = mGameModel.getCurrentPlayer();
+        Player currentPlayer = mGameModel.getCurrentPlayer();
         mPlayerScore = currentPlayer.getPlayerScore();
         mEngineScore = currentPlayer.getEngineScore();
         mEngineScoreView.setCurrentText("" + mEngineScore);
@@ -398,13 +403,13 @@ public class GameFragment extends Fragment implements GameModel.MoveCallback, Tu
         return true;
     }
 
-    private void makePlayerMove(GameModel.Move m) {
+    private void makePlayerMove(Move m) {
         if(mState != 2) {
             //Log.w("Player moved", "state was " + mState);
             return;
         }
         mCountDownAnimation.cancel();
-        GameModel.Result result = mGameModel.onPlayerMove(m);
+        Result result = mGameModel.onPlayerMove(m);
         commonResultActions(m, result);
         mTurningCube.animateShowEngineMove();
     }
@@ -414,25 +419,25 @@ public class GameFragment extends Fragment implements GameModel.MoveCallback, Tu
             Log.w("Player not moved", "state was " + mState);
             return;
         }
-        commonResultActions(null, GameModel.Result.LOSS);
+        commonResultActions(null, Result.LOSS);
         mGameModel.onPlayerNotMoved();
     }
 
-    private void commonResultActions(GameModel.Move m, GameModel.Result result) {
+    private void commonResultActions(Move m, Result result) {
         mState = 3;
         mResult = result;
         mPlayerMove = m;
-        if (result == GameModel.Result.WIN) {
+        if (result == Result.WIN) {
             mPlayerScore++;
             mPlayerScoreView.setText(""+ mPlayerScore);
-        } else if (result == GameModel.Result.LOSS) {
+        } else if (result == Result.LOSS) {
             mEngineScore++;
             mEngineScoreView.setText(""+ mEngineScore);
         }
         showResult(m,result);
     }
 
-    private void showResult(GameModel.Move m, GameModel.Result result) {
+    private void showResult(Move m, Result result) {
         mChoicesView.setVisibility(View.INVISIBLE);
         int drawable;
         if (m == null) {
@@ -478,7 +483,7 @@ public class GameFragment extends Fragment implements GameModel.MoveCallback, Tu
     }
 
     @Override
-    public void onEngineMoveReady(GameModel.Move m) {
+    public void onEngineMoveReady(Move m) {
         mEngineMove = m;
         mTurningCube.onEngineMoveReady(m, mGameModel.getBitmap());
     }

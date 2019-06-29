@@ -1,5 +1,6 @@
-package ga.agoponenko.rockpaperscissors;
+package ga.agoponenko.rockpaperscissors.gamemodel;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.os.Handler;
@@ -9,12 +10,19 @@ import com.google.zxing.WriterException;
 
 import java.util.List;
 
+import ga.agoponenko.rockpaperscissors.AndrSQLiteGameStore;
+import ga.agoponenko.rockpaperscissors.BuildConfig;
+import ga.agoponenko.rockpaperscissors.GameModelBackgroundThread;
+import ga.agoponenko.rockpaperscissors.QREncoder;
+import ga.agoponenko.rockpaperscissors.R;
+
 public class GameModel {
     private static final String PREF_CURRENT_PLAYER = "currentPlayer";
     private static final String PREF_ENGINE_MOVE_SHOWN = "nEngineMoveShown";
     private static final String TRUE = "T";
     private static final String FALSE = "F";
 
+    @SuppressLint("StaticFieldLeak")
     private static GameModel sModel;
     private final GameModelBackgroundThread mBackgroundThread;
     private final Handler mResponseHandler;
@@ -27,12 +35,23 @@ public class GameModel {
     private Bitmap mBitmap;
 
     private GameModel(Context context) {
+        this(context,
+             AndrSQLiteGameStore.getInstance(context),
+             new GameModelBackgroundThread(),
+             new Handler()
+        );
+    }
+
+    public GameModel(Context context,
+                     GameStore store,
+                     GameModelBackgroundThread thread,
+                     Handler handler) {
         mContext = context;
-        mStore = GameStore.getInstance(context);
-        mBackgroundThread = new GameModelBackgroundThread();
+        mStore = store;
+        mBackgroundThread = thread;
         mBackgroundThread.start();
         mBackgroundThread.getLooper();
-        mResponseHandler = new Handler();
+        mResponseHandler = handler;
         mPlayerId = mStore.getPreferences(PREF_CURRENT_PLAYER);
         if(TRUE.equals(mStore.getPreferences(PREF_ENGINE_MOVE_SHOWN))) {
             increaseEngineScore();
@@ -102,9 +121,9 @@ public class GameModel {
                                     //Log.d("History row",
                                     //      key + ": " + row.mSame + " " + row.mUp + " " + row
                                     //      .mDown);
-                                    up += row.mUp;
-                                    down += row.mDown;
-                                    same += row.mSame;
+                                    up += row.getUp();
+                                    down += row.getDown();
+                                    same += row.getSame();
                                 }
                             }
                         }
@@ -158,7 +177,8 @@ public class GameModel {
                     long hint = move.ordinal() + 3 * (long) (Math.random() * 10000000000.0);
                     try {
                         mBitmap = QREncoder.encodeAsBitmap("" + hint,
-                                                           mContext.getResources().getDimensionPixelSize(R.dimen.cubeSize)*2);
+                                                           mContext.getResources().getDimensionPixelSize(
+                                                                 R.dimen.cubeSize)*2);
                     } catch (WriterException e) {
                         e.printStackTrace();
                     }
@@ -174,13 +194,13 @@ public class GameModel {
 
     private void increaseEngineScore() {
         Player player = getCurrentPlayer();
-        player.mEngineScore++;
+        player.increaseEngineScore(1);
         updatePlayer(player);
     }
 
     private void increasePlayerScore() {
         Player player = getCurrentPlayer();
-        player.mPlayerScore++;
+        player.increasePlayerScore(1);
         updatePlayer(player);
     }
 
@@ -264,9 +284,10 @@ public class GameModel {
 
                 //updateHistory(playerMove, result);
                 playerHistory.setUpDownHistory(
-                      chomp(playerHistory.getUpDownHistory() + upDown, HistoryRow.maxH));
+                      PlayerHistory.chomp(playerHistory.getUpDownHistory() + upDown,
+                                          HistoryRow.maxH));
                 playerHistory.setWinLossHistory(
-                      chomp(playerHistory.getWinLossHistory() + result.toLetter(),
+                      PlayerHistory.chomp(playerHistory.getWinLossHistory() + result.toLetter(),
                             HistoryRow.maxR));
                 playerHistory.lastMove = playerMove;
                 mStore.updatePlayerHistory(playerHistory);
@@ -291,14 +312,15 @@ public class GameModel {
          * player's statistics in not updated either
          */
         PlayerHistory playerHistory = getCurrentPlayerHistory();
-        playerHistory.upDownHistory = chomp(playerHistory.upDownHistory + "Z", HistoryRow.maxH);
+        playerHistory.upDownHistory = PlayerHistory.chomp(playerHistory.upDownHistory + "Z", HistoryRow.maxH);
         mStore.updatePlayerHistory(playerHistory);
     }
 
     private void onGameResumed() {
         PlayerHistory playerHistory = getCurrentPlayerHistory();
         if (playerHistory.upDownHistory.charAt(playerHistory.upDownHistory.length() - 1) != 'B') {
-            playerHistory.upDownHistory = chomp(playerHistory.upDownHistory + "B", HistoryRow.maxH);
+            playerHistory.upDownHistory = PlayerHistory.chomp(playerHistory.upDownHistory + "B",
+                                                 HistoryRow.maxH);
             mStore.updatePlayerHistory(playerHistory);
         }
     }
@@ -368,226 +390,8 @@ public class GameModel {
         mStore.deletePlayer(id);
     }
 
-    private String chomp(String s, int i) {
-        if (s.length() > i) {
-            return s.substring(s.length() - i);
-        } else {
-            return s;
-        }
-    }
-
-    public enum Result {
-        WIN, LOSS, DRAW;
-
-        public static Result fromInt(int i) {
-            if (i == -1) {
-                return null;
-            } else {
-                return Result.values()[i];
-            }
-        }
-
-        public String toLetter() {
-            final String[] Letters = {"W", "L", "D"};
-            return Letters[ordinal()];
-        }
-    }
-
-    public enum Move {
-        ROCK, PAPER, SCISSORS;
-
-        public static final int size = Move.values().length;
-        public static final Move[] val = Move.values();
-
-        public static Move fromInt(int i) {
-            if (i == -1) {
-                return null;
-            } else {
-                return val[i];
-            }
-        }
-
-        public Move next() {
-            return val[(ordinal() + 1) % size];
-        }
-
-        public String toLetter() {
-            final String[] Letters = {"R", "P", "S"};
-            return Letters[ordinal()];
-        }
-    }
-
     public interface MoveCallback {
         void onEngineMoveReady(Move m);
     }
 
-    public static class Player {
-
-        private String mName;
-        private int mPlayerScore;
-        private int mEngineScore;
-        private String mId;
-
-        public Player(String id) {
-            mId = id;
-        }
-
-        public String getName() {
-            return mName;
-        }
-
-        public void setName(String name) {
-            mName = name;
-        }
-
-        public int getPlayerScore() {
-            return mPlayerScore;
-        }
-
-        public void setPlayerScore(int playerScore) {
-            mPlayerScore = playerScore;
-        }
-
-        public int getEngineScore() {
-            return mEngineScore;
-        }
-
-        public void setEngineScore(int engineScore) {
-            mEngineScore = engineScore;
-        }
-
-        public String getId() {
-            return mId;
-        }
-
-        private void setID(String id) {
-            mId = id;
-        }
-    }
-
-    public static class PlayerHistory {
-
-        private String playerId;
-        private Move lastMove;
-        private String upDownHistory;
-        private String winLossHistory;
-
-        public PlayerHistory(String playerId,
-                             Move lastMove,
-                             String upDownHistory,
-                             String winLossHistory) {
-            this.playerId = playerId;
-            this.lastMove = lastMove;
-            this.upDownHistory = upDownHistory;
-            this.winLossHistory = winLossHistory;
-        }
-
-        public PlayerHistory(String playerId) {
-            this.playerId = playerId;
-            this.lastMove = Move.ROCK;
-            this.upDownHistory = "B";
-            this.winLossHistory = "";
-        }
-
-        public String getPlayerId() {
-            return playerId;
-        }
-
-        public Move getLastMove() {
-            return lastMove;
-        }
-
-        public void setLastMove(Move lastMove) {
-            this.lastMove = lastMove;
-        }
-
-        public String getUpDownHistory() {
-            return upDownHistory;
-        }
-
-        public void setUpDownHistory(String upDownHistory) {
-            this.upDownHistory = upDownHistory;
-        }
-
-        public String getWinLossHistory() {
-            return winLossHistory;
-        }
-
-        public void setWinLossHistory(String winLossHistory) {
-            this.winLossHistory = winLossHistory;
-        }
-    }
-
-    public static class HistoryRow {
-        public static final int maxH = 8;
-        public static final int maxR = 3;
-
-        /**
-         * format: m(0,8)r(0,3)l?
-         * m :
-         * 1 - player played up
-         * 2 - down
-         * 0 - same
-         * Z - player timed out
-         * B - game was interrupted
-         * l :
-         * R - last players move was rock
-         * P
-         * S
-         * r :
-         * W - player wins
-         * L - player looses
-         * D - draw
-         */
-        private String mKey;
-        private String mPlayerId;
-        private int mUp = 0;
-        private int mDown = 0;
-        private int mSame = 0;
-
-        public HistoryRow(String playerId) {
-            mPlayerId = playerId;
-        }
-
-        public HistoryRow(String playerId, String key) {
-            mPlayerId = playerId;
-            mKey = key;
-        }
-
-        public String getKey() {
-            return mKey;
-        }
-
-        public void setKey(String key) {
-            mKey = key;
-        }
-
-        public int getUp() {
-            return mUp;
-        }
-
-        public void setUp(int up) {
-            mUp = up;
-        }
-
-        public int getDown() {
-            return mDown;
-        }
-
-        public void setDown(int down) {
-            mDown = down;
-        }
-
-        public int getSame() {
-            return mSame;
-        }
-
-        public void setSame(int same) {
-            mSame = same;
-        }
-
-        public String getPlayerId() {
-            return mPlayerId;
-        }
-    }
 }

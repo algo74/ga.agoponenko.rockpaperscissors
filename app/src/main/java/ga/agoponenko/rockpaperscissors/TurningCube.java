@@ -11,6 +11,8 @@ import android.view.View;
 import android.view.animation.LinearInterpolator;
 import android.widget.ImageView;
 
+import ga.agoponenko.rockpaperscissors.gamemodel.Move;
+
 class TurningCube {
     private final ImageView mViewCover;
     private final Listener mListener;
@@ -21,7 +23,7 @@ class TurningCube {
     private Context mContext;
     private ValueAnimator mCubeAnimator;
     private boolean mEngineMoveReady;
-    private GameModel.Move mEngineMove;
+    private Move mEngineMove;
     private ValueAnimator mEngineMoveReadyAnimator;
     private ValueAnimator mShowEngineMoveAnimator;
     private final ObjectAnimator mHideCoverAnimator;
@@ -37,7 +39,7 @@ class TurningCube {
         mListener = listener;
         mSideNew = new CubeSide(view1);
         mSideOld = new CubeSide(view2);
-        mSideNew.setValue(GameModel.Move.ROCK);
+        mSideNew.setValue(Move.ROCK);
 
         mCubeAnimator = ValueAnimator.ofFloat(0f, 4f);
         CubeTurner cubeTurner = new CubeTurner();
@@ -118,7 +120,7 @@ class TurningCube {
         }
     }
 
-    void onEngineMoveReady(GameModel.Move m, Bitmap bitmap) {
+    void onEngineMoveReady(Move m, Bitmap bitmap) {
         mEngineMove = m;
         mEngineMoveReady = true;
         mBitmap = bitmap;
@@ -130,7 +132,7 @@ class TurningCube {
         }
     }
 
-    void reshowEngineMoveReady(GameModel.Move m, Bitmap bitmap) {
+    void reshowEngineMoveReady(Move m, Bitmap bitmap) {
         mEngineMove = m;
         mEngineMoveReady = true;
         mBitmap = bitmap;
@@ -166,7 +168,7 @@ class TurningCube {
         }
     }
 
-    void reshowEngineMove(GameModel.Move m, Bitmap bitmap) {
+    void reshowEngineMove(Move m, Bitmap bitmap) {
         mEngineMove = m;
         mEngineMoveReady = true;
         mBitmap = bitmap;
@@ -209,13 +211,13 @@ class TurningCube {
 
     private class CubeSide {
         ImageView mView;
-        GameModel.Move mValue;
+        Move mValue;
 
         CubeSide(ImageView v) {
             mView = v;
         }
 
-        void setValue(GameModel.Move value) {
+        void setValue(Move value) {
             mValue = value;
             switch (value) {
                 case ROCK:
@@ -232,7 +234,7 @@ class TurningCube {
             }
         }
 
-        GameModel.Move getValue() {
+        Move getValue() {
             return mValue;
         }
     }

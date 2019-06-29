@@ -4,6 +4,8 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.widget.ImageView;
 
+import ga.agoponenko.rockpaperscissors.gamemodel.GameModel;
+
 public class CoverInfoActivity extends AppCompatActivity {
     GameModel mGameModel;
 

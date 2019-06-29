@@ -14,12 +14,15 @@ import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.TextView;
 
+import ga.agoponenko.rockpaperscissors.gamemodel.GameModel;
+import ga.agoponenko.rockpaperscissors.gamemodel.Player;
+
 
 public class EditPlayerFragment extends DialogFragment {
     private static final String PLAYER_INDEX = "playerIndex";
     private static final String PLAYER_ID = "playerId";
 
-    private GameModel.Player mPlayer;
+    private Player mPlayer;
     private GameModel mModel;
     private EditText mNameView;
     private CheckBox mCheckbox;

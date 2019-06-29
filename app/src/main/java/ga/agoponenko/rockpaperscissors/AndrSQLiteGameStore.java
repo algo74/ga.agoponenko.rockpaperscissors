@@ -16,36 +16,42 @@ import ga.agoponenko.rockpaperscissors.db.DbSchema.PlayerHistoryTable;
 import ga.agoponenko.rockpaperscissors.db.HistoryRowCursorWrapper;
 import ga.agoponenko.rockpaperscissors.db.PlayerCursorWrapper;
 import ga.agoponenko.rockpaperscissors.db.PlayerHistoryCursorWrapper;
+import ga.agoponenko.rockpaperscissors.gamemodel.GameStore;
+import ga.agoponenko.rockpaperscissors.gamemodel.HistoryRow;
+import ga.agoponenko.rockpaperscissors.gamemodel.Player;
+import ga.agoponenko.rockpaperscissors.gamemodel.PlayerHistory;
 
-class GameStore {
+public class AndrSQLiteGameStore implements GameStore {
     private static GameStore ourInstance;
 
     private final Context mContext;
     private final SQLiteDatabase mDb;
 
-    static GameStore getInstance(Context context) {
+    public static GameStore getInstance(Context context) {
         if (ourInstance != null) {
             return ourInstance;
         }
-        synchronized (GameStore.class) {
+        synchronized (AndrSQLiteGameStore.class) {
             if (ourInstance != null) {
                 return ourInstance;
             }
-            ourInstance = new GameStore(context);
+            ourInstance = new AndrSQLiteGameStore(context);
             return ourInstance;
         }
     }
 
-    private GameStore(Context context) {
+    private AndrSQLiteGameStore(Context context) {
         mContext = context.getApplicationContext();
         mDb = new DbHelper(mContext).getWritableDatabase();
     }
 
-    public String getPreferences (String key) {
+    @Override
+    public String getPreferences(String key) {
         return PreferenceManager.getDefaultSharedPreferences(mContext)
                                 .getString(key, null);
     }
 
+    @Override
     public void setPreferences(String key, String value) {
         PreferenceManager.getDefaultSharedPreferences(mContext)
                          .edit()
@@ -53,8 +59,9 @@ class GameStore {
                          .apply();
     }
 
-    public List<GameModel.Player> getPlayers() {
-        List<GameModel.Player> players = new ArrayList<>();
+    @Override
+    public List<Player> getPlayers() {
+        List<Player> players = new ArrayList<>();
         try (PlayerCursorWrapper cw = queryPlayers(null, null)) {
             cw.moveToFirst();
             while (!cw.isAfterLast()) {
@@ -65,7 +72,8 @@ class GameStore {
         return players;
     }
 
-    public GameModel.Player getPlayer(String id) {
+    @Override
+    public Player getPlayer(String id) {
         try (PlayerCursorWrapper cw = queryPlayers(DbSchema.PlayerTable.Cols.ID + " = ?",
                                                    new String[]{id})) {
             cw.moveToFirst();
@@ -73,19 +81,22 @@ class GameStore {
         }
     }
 
-    public long createPlayer(GameModel.Player player) {
+    @Override
+    public long createPlayer(Player player) {
         return mDb.insert(DbSchema.PlayerTable.NAME, null, getContentValues(player));
     }
 
-    public void updatePlayer(GameModel.Player player) {
+    @Override
+    public void updatePlayer(Player player) {
         mDb.update(DbSchema.PlayerTable.NAME,
                    getContentValues(player),
                    DbSchema.PlayerTable.Cols.ID + " = ?",
                    new String[] {player.getId()});
     }
 
+    @Override
     public void deletePlayer(String id) {
-        // TODO: delete history
+        deletePlayerHistory(id);
         mDb.delete(DbSchema.PlayerTable.NAME,
                    DbSchema.PlayerTable.Cols.ID + " = ?",
                    new String[] {id});
@@ -105,27 +116,30 @@ class GameStore {
         return new PlayerCursorWrapper(cursor);
     }
 
-    public long createPlayerHistory(GameModel.PlayerHistory playerHistory) {
+    @Override
+    public long createPlayerHistory(PlayerHistory playerHistory) {
         return mDb.insert(DbSchema.PlayerHistoryTable.NAME,
                           null,
                           getContentValues(playerHistory));
     }
 
-    public void updatePlayerHistory(GameModel.PlayerHistory playerHistory) {
+    @Override
+    public void updatePlayerHistory(PlayerHistory playerHistory) {
         mDb.update(DbSchema.PlayerHistoryTable.NAME,
                    getContentValues(playerHistory),
                    PlayerHistoryTable.Cols.PLAYER_ID + " = ?",
                    new String[] {playerHistory.getPlayerId()});
     }
 
+    @Override
     public void deletePlayerHistory(String playerId) {
-        // TODO: delete history
         mDb.delete(DbSchema.PlayerHistoryTable.NAME,
                    PlayerHistoryTable.Cols.PLAYER_ID + " = ?",
                    new String[] {playerId});
     }
 
-    public GameModel.PlayerHistory getPlayerHistory(String playerId) {
+    @Override
+    public PlayerHistory getPlayerHistory(String playerId) {
         try(PlayerHistoryCursorWrapper cw = queryPlayerHistory(
               PlayerHistoryTable.Cols.PLAYER_ID + " = ?",
               new String[] {playerId}
@@ -154,7 +168,8 @@ class GameStore {
      * @param playerId id of the player or null for all players
      * @return the history row if exists or null if not
      */
-    public GameModel.HistoryRow getHistoryRow(String key, String playerId) {
+    @Override
+    public HistoryRow getHistoryRow(String key, String playerId) {
         try(HistoryRowCursorWrapper cw = queryHistory(
               HistoryTable.Cols.KEY + "=? and " + HistoryTable.Cols.PLAYER_ID + "=?",
               new String[] {key, playerId}
@@ -168,7 +183,8 @@ class GameStore {
         }
     }
 
-    public void saveHistoryRow(GameModel.HistoryRow row) {
+    @Override
+    public void saveHistoryRow(HistoryRow row) {
         ContentValues contentValues = getContentValues(row);
         int res = mDb.update(
               HistoryTable.NAME,
@@ -194,7 +210,7 @@ class GameStore {
         return new HistoryRowCursorWrapper(cursor);
     }
 
-    private static ContentValues getContentValues(GameModel.Player player) {
+    private static ContentValues getContentValues(Player player) {
         ContentValues values = new ContentValues();
         values.put(DbSchema.PlayerTable.Cols.NAME, player.getName());
         //values.put(DbSchema.PlayerTable.Cols.ID, player.getId());
@@ -203,7 +219,7 @@ class GameStore {
         return values;
     }
 
-    private static ContentValues getContentValues(GameModel.HistoryRow row) {
+    private static ContentValues getContentValues(HistoryRow row) {
         ContentValues values = new ContentValues();
         values.put(HistoryTable.Cols.KEY, row.getKey());
         values.put(HistoryTable.Cols.UP, row.getUp());
@@ -213,7 +229,7 @@ class GameStore {
         return values;
     }
 
-    private static ContentValues getContentValues(GameModel.PlayerHistory ph) {
+    private static ContentValues getContentValues(PlayerHistory ph) {
         ContentValues values = new ContentValues();
         values.put(PlayerHistoryTable.Cols.PLAYER_ID, ph.getPlayerId());
         values.put(PlayerHistoryTable.Cols.UP_DOWN_HISTORY, ph.getUpDownHistory());
