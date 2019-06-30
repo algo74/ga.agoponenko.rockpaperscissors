@@ -1,5 +1,6 @@
 package ga.agoponenko.rockpaperscissors;
 
+import android.content.Context;
 import android.graphics.Bitmap;
 
 import com.google.zxing.BarcodeFormat;
@@ -40,5 +41,22 @@ public class QREncoder {
         Bitmap bitmap = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
         bitmap.setPixels(pixels, 0, w, 0, 0, w, h);
         return bitmap;
+    }
+
+    private Context mContext;
+
+    public QREncoder(Context context) {
+        mContext = context;
+    }
+
+    public Bitmap encodeHint(long hint){
+        try {
+            return QREncoder.encodeAsBitmap("" + hint,
+                                            mContext.getResources().getDimensionPixelSize(
+                                                  R.dimen.cubeSize) * 2);
+        } catch (WriterException e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 }

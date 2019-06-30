@@ -6,19 +6,16 @@ import android.graphics.Bitmap;
 import android.os.Handler;
 import android.util.Log;
 
-import com.google.zxing.WriterException;
-
 import java.util.List;
 
 import ga.agoponenko.rockpaperscissors.AndrSQLiteGameStore;
 import ga.agoponenko.rockpaperscissors.BuildConfig;
 import ga.agoponenko.rockpaperscissors.GameModelBackgroundThread;
 import ga.agoponenko.rockpaperscissors.QREncoder;
-import ga.agoponenko.rockpaperscissors.R;
 
 public class GameModel {
     private static final String PREF_CURRENT_PLAYER = "currentPlayer";
-    private static final String PREF_ENGINE_MOVE_SHOWN = "nEngineMoveShown";
+    private static final String PREF_ENGINE_MOVE_SHOWN = "mEngineMoveShown";
     private static final String TRUE = "T";
     private static final String FALSE = "F";
 
@@ -26,40 +23,43 @@ public class GameModel {
     private static GameModel sModel;
     private final GameModelBackgroundThread mBackgroundThread;
     private final Handler mResponseHandler;
+    private final QREncoder mEncoder;
     private GameStore mStore;
-    private Context mContext;
     private boolean mEngineMoveReady;
     private boolean mEngineMoveShown;
     private Move mEngineMove;
     private String mPlayerId;
     private Bitmap mBitmap;
 
+
     private GameModel(Context context) {
-        this(context,
-             AndrSQLiteGameStore.getInstance(context),
+        this(AndrSQLiteGameStore.getInstance(context),
+             new QREncoder(context),
              new GameModelBackgroundThread(),
              new Handler()
         );
     }
 
-    public GameModel(Context context,
-                     GameStore store,
+    public GameModel(GameStore store,
+                     QREncoder encoder,
                      GameModelBackgroundThread thread,
                      Handler handler) {
-        mContext = context;
         mStore = store;
         mBackgroundThread = thread;
         mBackgroundThread.start();
         mBackgroundThread.getLooper();
         mResponseHandler = handler;
+        mEncoder = encoder;
         mPlayerId = mStore.getPreferences(PREF_CURRENT_PLAYER);
-        if(TRUE.equals(mStore.getPreferences(PREF_ENGINE_MOVE_SHOWN))) {
-            increaseEngineScore();
-            mStore.setPreferences(PREF_ENGINE_MOVE_SHOWN, FALSE);
-        }
+
         if (mPlayerId == null) {
             mPlayerId = newPlayer().getId();
             mStore.setPreferences(PREF_CURRENT_PLAYER, mPlayerId);
+        } else {
+            if(TRUE.equals(mStore.getPreferences(PREF_ENGINE_MOVE_SHOWN))) {
+                increaseEngineScore();
+                mStore.setPreferences(PREF_ENGINE_MOVE_SHOWN, FALSE);
+            }
         }
         onGameResumed();
     }
@@ -175,13 +175,7 @@ public class GameModel {
 
                     // prepare QR code
                     long hint = move.ordinal() + 3 * (long) (Math.random() * 10000000000.0);
-                    try {
-                        mBitmap = QREncoder.encodeAsBitmap("" + hint,
-                                                           mContext.getResources().getDimensionPixelSize(
-                                                                 R.dimen.cubeSize)*2);
-                    } catch (WriterException e) {
-                        e.printStackTrace();
-                    }
+                    mBitmap = mEncoder.encodeHint(hint);
                     mEngineMove = move;
                     mEngineMoveReady = true;
                     mResponseHandler.post(response);

@@ -36,6 +36,18 @@ public class HistoryRow {
         mKey = key;
     }
 
+    public HistoryRow(String playerId,
+                      String key,
+                      int up,
+                      int down,
+                      int same) {
+        mPlayerId = playerId;
+        mKey = key;
+        mUp = up;
+        mDown = down;
+        mSame = same;
+    }
+
     public String getKey() {
         return mKey;
     }
