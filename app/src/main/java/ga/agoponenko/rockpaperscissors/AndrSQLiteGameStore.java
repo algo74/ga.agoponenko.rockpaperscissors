@@ -5,6 +5,7 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.preference.PreferenceManager;
+import android.support.annotation.VisibleForTesting;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -22,12 +23,12 @@ import ga.agoponenko.rockpaperscissors.gamemodel.Player;
 import ga.agoponenko.rockpaperscissors.gamemodel.PlayerHistory;
 
 public class AndrSQLiteGameStore implements GameStore {
-    private static GameStore ourInstance;
+    private static AndrSQLiteGameStore ourInstance;
 
     private final Context mContext;
-    private final SQLiteDatabase mDb;
+    private SQLiteDatabase mDb;
 
-    public static GameStore getInstance(Context context) {
+    public static AndrSQLiteGameStore getInstance(Context context) {
         if (ourInstance != null) {
             return ourInstance;
         }
@@ -43,6 +44,12 @@ public class AndrSQLiteGameStore implements GameStore {
     private AndrSQLiteGameStore(Context context) {
         mContext = context.getApplicationContext();
         mDb = new DbHelper(mContext).getWritableDatabase();
+    }
+
+    @VisibleForTesting
+    void injectDb(SQLiteDatabase db) {
+        mDb.close();
+        mDb = db;
     }
 
     @Override
@@ -76,6 +83,9 @@ public class AndrSQLiteGameStore implements GameStore {
     public Player getPlayer(String id) {
         try (PlayerCursorWrapper cw = queryPlayers(DbSchema.PlayerTable.Cols.ID + " = ?",
                                                    new String[]{id})) {
+            if (cw.isAfterLast()) {
+                return null;
+            }
             cw.moveToFirst();
             return cw.getPlayer();
         }

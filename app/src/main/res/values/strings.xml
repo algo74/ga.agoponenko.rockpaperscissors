@@ -10,9 +10,9 @@
     <string name="cancel">Cancel</string>
     <string name="delete">Delete</string>
     <string name="cover_info">
-        This image is a proof that the game is not cheating on you. The QR code hides a
-        positive integer number. The computer move is encoded in the remainder of division of this
-        number by 3:
+        This image is a proof that the game is not cheating. The QR code hides an
+        integer number. When this number is divided by 3, the remainder corresponds to
+        the computer move:
         <![CDATA[
         0 - rock,
         1 - paper,

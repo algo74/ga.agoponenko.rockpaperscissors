@@ -63,8 +63,8 @@ public class StickyCountDownAnimation {
 	private final Runnable mCountDown = new Runnable() {
 		public void run() {
 			//Log.d("StickyCountDown", "Count: " + mCurrentCount);
+			mTextView.setText(mCurrentCount + "");
 			if (mCurrentCount > 0) {
-				mTextView.setText(mCurrentCount + "");
 				mTextView.setVisibility(View.VISIBLE);
 				mTextView.startAnimation(mAnimation);
 				mCurrentCount--;

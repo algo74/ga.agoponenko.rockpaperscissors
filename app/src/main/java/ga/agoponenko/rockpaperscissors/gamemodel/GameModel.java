@@ -53,8 +53,7 @@ public class GameModel {
         mPlayerId = mStore.getPreferences(PREF_CURRENT_PLAYER);
 
         if (mPlayerId == null) {
-            mPlayerId = newPlayer().getId();
-            mStore.setPreferences(PREF_CURRENT_PLAYER, mPlayerId);
+            newCurrentPlayer();
         } else {
             if(TRUE.equals(mStore.getPreferences(PREF_ENGINE_MOVE_SHOWN))) {
                 increaseEngineScore();
@@ -62,6 +61,11 @@ public class GameModel {
             }
         }
         onGameResumed();
+    }
+
+    private void newCurrentPlayer() {
+        mPlayerId = newPlayer().getId();
+        mStore.setPreferences(PREF_CURRENT_PLAYER, mPlayerId);
     }
 
     public static GameModel getInstance(Context context) {
@@ -347,7 +351,12 @@ public class GameModel {
     }
 
     public Player getCurrentPlayer() {
-        return getPlayer(mPlayerId);
+        Player player = getPlayer(mPlayerId);
+        if (player == null) {
+            newCurrentPlayer();
+            player = getPlayer(mPlayerId);
+        }
+        return player;
     }
 
     private PlayerHistory getCurrentPlayerHistory() {

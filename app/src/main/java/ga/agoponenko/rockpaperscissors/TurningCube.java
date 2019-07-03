@@ -14,6 +14,10 @@ import android.widget.ImageView;
 import ga.agoponenko.rockpaperscissors.gamemodel.Move;
 
 class TurningCube {
+    public static final int DURATION_COVER = 1000;
+    public static final int DURATION_CUBE = 2000;
+    public static final int DURATION_INFO = 500;
+
     private final ImageView mViewCover;
     private final Listener mListener;
     private ImageView mViewNew;
@@ -46,24 +50,24 @@ class TurningCube {
         mCubeAnimator.addUpdateListener(cubeTurner);
         mCubeAnimator.addListener(cubeTurner);
         mCubeAnimator.setInterpolator(new LinearInterpolator());
-        mCubeAnimator.setDuration(2000);
+        mCubeAnimator.setDuration(DURATION_CUBE);
         //mCubeAnimator.setRepeatCount(ValueAnimator.INFINITE);
 
         mEngineMoveReadyAnimator = ValueAnimator.ofFloat(0f, 1f);
         mEngineMoveReadyAnimator.setInterpolator(new LinearInterpolator());
-        mEngineMoveReadyAnimator.setDuration(1000);
+        mEngineMoveReadyAnimator.setDuration(DURATION_COVER);
         EngineMoveTurner engineMoveTurner = new EngineMoveTurner();
         mEngineMoveReadyAnimator.addListener(engineMoveTurner);
         mEngineMoveReadyAnimator.addUpdateListener(engineMoveTurner);
 
         mShowEngineMoveAnimator = ValueAnimator.ofFloat(0f, 1f);
-        mShowEngineMoveAnimator.setDuration(1000);
+        mShowEngineMoveAnimator.setDuration(DURATION_COVER);
         EngineMoveShower engineMoveShower = new EngineMoveShower();
         mShowEngineMoveAnimator.addUpdateListener(engineMoveShower);
         mShowEngineMoveAnimator.addListener(engineMoveShower);
 
         mHideCoverAnimator = ObjectAnimator.ofFloat(mViewCover,"alpha", 1f, 0f);
-        mHideCoverAnimator.setDuration(500);
+        mHideCoverAnimator.setDuration(DURATION_INFO);
         mHideCoverAnimator.addListener(new Animator.AnimatorListener() {
             @Override
             public void onAnimationStart(Animator animation) {
