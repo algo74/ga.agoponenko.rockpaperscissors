@@ -3,11 +3,13 @@ package ga.agoponenko.rockpaperscissors;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -31,6 +33,7 @@ public class PlayersFragment extends Fragment {
     private RecyclerView mRecyclerView;
     private PlayersAdapter mAdapter;
     private GameModel mGameModel;
+    private View mPlaceHolder;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -62,9 +65,11 @@ public class PlayersFragment extends Fragment {
                              ViewGroup container,
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_players, container, false);
+
+        mPlaceHolder = view.findViewById(R.id.no_players_placeholder);
+
         mRecyclerView = view.findViewById(R.id.players_recycler_view);
         mRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
-
 
         updateUI();
 
@@ -80,7 +85,10 @@ public class PlayersFragment extends Fragment {
     private void updateUI() {
        List<Player> players = mGameModel.getPlayers();
         if (players.size() == 0) {
-            // TODO
+            mPlaceHolder.setVisibility(View.VISIBLE);
+            // TODO: update position of the arrow;
+        } else {
+            mPlaceHolder.setVisibility(View.GONE);
         }
         if (mAdapter == null) {
             mAdapter = new PlayersAdapter(players);
@@ -90,6 +98,8 @@ public class PlayersFragment extends Fragment {
             mAdapter.notifyDataSetChanged();
         }
     }
+
+
 
     private void showEditPlayerDialog(String id) {
         FragmentManager manager = getFragmentManager();

@@ -24,6 +24,7 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextSwitcher;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import ga.agoponenko.rockpaperscissors.gamemodel.GameModel;
 import ga.agoponenko.rockpaperscissors.gamemodel.Move;
@@ -104,8 +105,7 @@ public class GameFragment extends Fragment implements GameModel.MoveCallback, Tu
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.choose_player:
-                Intent intent = new Intent(getActivity(), PlayersActivity.class);
-                startActivityForResult(intent, REQUEST_CHANGE_PLAYER);
+                startPlayersActivity();
                 return true;
             case R.id.reset_score:
                 Player player = mGameModel.getCurrentPlayer();
@@ -118,19 +118,30 @@ public class GameFragment extends Fragment implements GameModel.MoveCallback, Tu
         }
     }
 
+    private void startPlayersActivity() {
+        Intent intent = new Intent(getActivity(), PlayersActivity.class);
+        startActivityForResult(intent, REQUEST_CHANGE_PLAYER);
+    }
+
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if(resultCode != Activity.RESULT_OK) {
+
+        if (requestCode == REQUEST_CHANGE_PLAYER && mGameModel.getCurrentPlayer() == null) {
+            Toast.makeText(getActivity().getApplicationContext(),R.string.need_player,
+                           Toast.LENGTH_SHORT).show();
+            getActivity().finish();
             return;
         }
-
-        if(requestCode == REQUEST_CHANGE_PLAYER) {
+        if(resultCode == Activity.RESULT_OK && requestCode == REQUEST_CHANGE_PLAYER) {
             int result = data.getIntExtra(Intent.EXTRA_RETURN_RESULT, PlayersFragment.RESULT_NOT_CHANGED);
             if (result == PlayersFragment.RESULT_PLAYER_SWITCHED) {
                 resetGame();
             }
         }
+
+
+
     }
 
     @Override
@@ -266,6 +277,11 @@ public class GameFragment extends Fragment implements GameModel.MoveCallback, Tu
         super.onStart();
         mIsStopped = false;
 
+        if (mGameModel.getCurrentPlayer() == null) {
+            startPlayersActivity();
+            return;
+        }
+
         loadScores();
 
         final View firstCubeSide = getView().findViewById(R.id.cubeView1); // needed in switch twice
@@ -343,6 +359,7 @@ public class GameFragment extends Fragment implements GameModel.MoveCallback, Tu
 
     private void loadScores() {
         Player currentPlayer = mGameModel.getCurrentPlayer();
+
         mPlayerScore = currentPlayer.getPlayerScore();
         mEngineScore = currentPlayer.getEngineScore();
         mEngineScoreView.setCurrentText("" + mEngineScore);
@@ -416,7 +433,7 @@ public class GameFragment extends Fragment implements GameModel.MoveCallback, Tu
 
     private void onPlayerTimedOut() {
         if(mState != 2) {
-            Log.w("Player not moved", "state was " + mState);
+            //Log.w("Player not moved", "state was " + mState);
             return;
         }
         commonResultActions(null, Result.LOSS);

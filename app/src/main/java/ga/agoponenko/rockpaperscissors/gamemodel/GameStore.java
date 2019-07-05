@@ -7,9 +7,12 @@ import ga.agoponenko.rockpaperscissors.gamemodel.Player;
 import ga.agoponenko.rockpaperscissors.gamemodel.PlayerHistory;
 
 public interface GameStore {
-    String getPreferences(String key);
 
-    void setPreferences(String key, String value);
+    String getPrefPlayer();
+    void  setPrefPlayer(String id);
+
+    boolean getPrefMoveShown();
+    void setPrefMoveShown(boolean shown);
 
     List<Player> getPlayers();
 

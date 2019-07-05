@@ -185,9 +185,9 @@ class TurningCube {
         float sizeX = Math.min(size, mViewNew.getLeft());
         float sizeY = Math.min(size, v.getHeight() - mViewCover.getBottom());
 
-        Log.d("reshowEngineMove", "sizeY: " + sizeY);
-        Log.d("reshowEngineMove", "parent height: " + v.getHeight());
-        Log.d("reshowEngineMove", "bottom: " + mViewCover.getBottom());
+        //Log.d("reshowEngineMove", "sizeY: " + sizeY);
+        //Log.d("reshowEngineMove", "parent height: " + v.getHeight());
+        //Log.d("reshowEngineMove", "bottom: " + mViewCover.getBottom());
 
         mViewNew.setVisibility(View.VISIBLE);
         mViewNew.setScaleX(1);

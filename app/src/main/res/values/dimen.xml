@@ -9,4 +9,6 @@
     <dimen name="scoreFontSize">20sp</dimen>
     <dimen name="contDownFontSize">50dp</dimen>
     <dimen name="sideMargin">8dp</dimen>
+    <dimen name="noPlayerHintTextSize">16sp</dimen>
+    <dimen name="noPlayerHintLeftMargin">32dp</dimen>
 </resources>

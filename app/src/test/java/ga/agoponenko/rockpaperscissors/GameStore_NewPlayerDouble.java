@@ -27,8 +27,7 @@ class GameStore_NewPlayerDouble implements GameStore {
     }
 
 
-    @Override
-    public String getPreferences(String key) {
+    private String getPreferences(String key) {
         switch (lastAction) {
             case init:
                 Assert.assertEquals("must load player id", key, "currentPlayer");
@@ -40,15 +39,26 @@ class GameStore_NewPlayerDouble implements GameStore {
         return null;
     }
 
-    @Override
-    public void setPreferences(String key, String value) {
-        if (key.equals("currentPlayer")) {
-            Assert.assertEquals(value, "11");
-            Assert.assertTrue(playerUpdated);
-        } else {
-            Assert.fail();
-        }
 
+    @Override
+    public String getPrefPlayer() {
+        return getPreferences("currentPlayer");
+    }
+
+    @Override
+    public void setPrefPlayer(String id) {
+        Assert.assertEquals(id, "11");
+        Assert.assertTrue(playerUpdated);
+    }
+
+    @Override
+    public boolean getPrefMoveShown() {
+        return getPreferences("mEngineMoveShown") == "T";
+    }
+
+    @Override
+    public void setPrefMoveShown(boolean shown) {
+        Assert.fail();
     }
 
     @Override

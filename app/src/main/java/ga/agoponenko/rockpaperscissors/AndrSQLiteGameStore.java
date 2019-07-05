@@ -23,6 +23,11 @@ import ga.agoponenko.rockpaperscissors.gamemodel.Player;
 import ga.agoponenko.rockpaperscissors.gamemodel.PlayerHistory;
 
 public class AndrSQLiteGameStore implements GameStore {
+    private static final String PREF_CURRENT_PLAYER = "currentPlayer";
+    private static final String PREF_ENGINE_MOVE_SHOWN = "mEngineMoveShown";
+    private static final String TRUE = "T";
+    private static final String FALSE = "F";
+
     private static AndrSQLiteGameStore ourInstance;
 
     private final Context mContext;
@@ -52,18 +57,37 @@ public class AndrSQLiteGameStore implements GameStore {
         mDb = db;
     }
 
-    @Override
-    public String getPreferences(String key) {
+    private String getPreferences(String key) {
         return PreferenceManager.getDefaultSharedPreferences(mContext)
                                 .getString(key, null);
     }
 
-    @Override
-    public void setPreferences(String key, String value) {
+    private void setPreferences(String key, String value) {
         PreferenceManager.getDefaultSharedPreferences(mContext)
                          .edit()
                          .putString(key, value)
                          .apply();
+    }
+
+
+    @Override
+    public String getPrefPlayer() {
+        return getPreferences(PREF_CURRENT_PLAYER);
+    }
+
+    @Override
+    public void setPrefPlayer(String id) {
+        setPreferences(PREF_CURRENT_PLAYER, id);
+    }
+
+    @Override
+    public boolean getPrefMoveShown() {
+        return getPreferences(PREF_ENGINE_MOVE_SHOWN) == TRUE;
+    }
+
+    @Override
+    public void setPrefMoveShown(boolean shown) {
+        setPreferences(PREF_ENGINE_MOVE_SHOWN, shown ? TRUE : FALSE);
     }
 
     @Override
@@ -81,12 +105,15 @@ public class AndrSQLiteGameStore implements GameStore {
 
     @Override
     public Player getPlayer(String id) {
+        if (id == null) {
+            return null;
+        }
         try (PlayerCursorWrapper cw = queryPlayers(DbSchema.PlayerTable.Cols.ID + " = ?",
                                                    new String[]{id})) {
+            cw.moveToFirst();
             if (cw.isAfterLast()) {
                 return null;
             }
-            cw.moveToFirst();
             return cw.getPlayer();
         }
     }

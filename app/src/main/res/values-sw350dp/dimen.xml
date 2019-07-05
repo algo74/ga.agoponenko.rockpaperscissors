@@ -8,4 +8,5 @@
     <dimen name="nameFontSize">18sp</dimen>
     <dimen name="scoreFontSize">24sp</dimen>
     <dimen name="contDownFontSize">80dp</dimen>
+    <dimen name="noPlayerHintTextSize">18sp</dimen>
 </resources>

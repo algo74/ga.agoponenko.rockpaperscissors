@@ -19,4 +19,6 @@
         2 - scissors.
         ]]>
     </string>
+    <string name="need_player">Select a player in order to play!</string>
+    <string name="no_players_yet">No players yet. Create a new player in order to play</string>
 </resources>

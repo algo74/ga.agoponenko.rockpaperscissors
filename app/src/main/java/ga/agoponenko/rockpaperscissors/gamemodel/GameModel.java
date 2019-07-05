@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.os.Handler;
+import android.support.annotation.VisibleForTesting;
 import android.util.Log;
 
 import java.util.List;
@@ -14,10 +15,6 @@ import ga.agoponenko.rockpaperscissors.GameModelBackgroundThread;
 import ga.agoponenko.rockpaperscissors.QREncoder;
 
 public class GameModel {
-    private static final String PREF_CURRENT_PLAYER = "currentPlayer";
-    private static final String PREF_ENGINE_MOVE_SHOWN = "mEngineMoveShown";
-    private static final String TRUE = "T";
-    private static final String FALSE = "F";
 
     @SuppressLint("StaticFieldLeak")
     private static GameModel sModel;
@@ -50,22 +47,23 @@ public class GameModel {
         mBackgroundThread.getLooper();
         mResponseHandler = handler;
         mEncoder = encoder;
-        mPlayerId = mStore.getPreferences(PREF_CURRENT_PLAYER);
+        mPlayerId = mStore.getPrefPlayer();
 
-        if (mPlayerId == null) {
-            newCurrentPlayer();
+        if (getCurrentPlayer() == null) {
+            //newCurrentPlayer();
         } else {
-            if(TRUE.equals(mStore.getPreferences(PREF_ENGINE_MOVE_SHOWN))) {
+            if((mStore.getPrefMoveShown())) {
                 increaseEngineScore();
-                mStore.setPreferences(PREF_ENGINE_MOVE_SHOWN, FALSE);
+                mStore.setPrefMoveShown(false);
             }
+            onGameResumed();
         }
-        onGameResumed();
     }
 
-    private void newCurrentPlayer() {
+    @VisibleForTesting
+    public void newCurrentPlayer() {
         mPlayerId = newPlayer().getId();
-        mStore.setPreferences(PREF_CURRENT_PLAYER, mPlayerId);
+        mStore.setPrefPlayer(mPlayerId);
     }
 
     public static GameModel getInstance(Context context) {
@@ -83,7 +81,7 @@ public class GameModel {
     public void prepareEngineMove(final MoveCallback callback) {
 
         if (mEngineMoveShown) {
-            Log.d("prepareEngineMove", "Move was shown - force onPlayerNotMoved()");
+            //Log.d("prepareEngineMove", "Move was shown - force onPlayerNotMoved()");
             onPlayerNotMoved();
         }
 
@@ -98,7 +96,7 @@ public class GameModel {
                         if (mEngineMoveReady) {
                             callback.onEngineMoveReady(mEngineMove);
                         } else {
-                            Log.d("prepareEngineMove", "restarting because of conflict");
+                            //Log.d("prepareEngineMove", "restarting because of conflict");
                             prepareEngineMove(callback);
                         }
                     }
@@ -205,9 +203,9 @@ public class GameModel {
     private void setEngineMoveShown(boolean b) {
         mEngineMoveShown = b;
         if (b) {
-            mStore.setPreferences(PREF_ENGINE_MOVE_SHOWN, TRUE);
+            mStore.setPrefMoveShown(true);
         } else {
-            mStore.setPreferences(PREF_ENGINE_MOVE_SHOWN, FALSE);
+            mStore.setPrefMoveShown(false);
         }
     }
 
@@ -343,7 +341,7 @@ public class GameModel {
             mPlayerId = id;
             mEngineMoveReady = false;
             setEngineMoveShown(false);
-            mStore.setPreferences(PREF_CURRENT_PLAYER, id);
+            mStore.setPrefPlayer(id);
             onGameResumed();
 
             return true;
@@ -352,10 +350,10 @@ public class GameModel {
 
     public Player getCurrentPlayer() {
         Player player = getPlayer(mPlayerId);
-        if (player == null) {
-            newCurrentPlayer();
-            player = getPlayer(mPlayerId);
-        }
+        //if (player == null) {
+        //    newCurrentPlayer();
+        //    player = getPlayer(mPlayerId);
+        //}
         return player;
     }
 

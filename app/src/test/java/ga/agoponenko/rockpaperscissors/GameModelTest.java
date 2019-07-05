@@ -67,10 +67,10 @@ public class GameModelTest {
         player.setName("TestPlayer");
         GameStore store = mock(GameStore.class);
         //when(store.getPlayer("10")).thenReturn(player);
-        when(store.getPreferences("currentPlayer")).thenReturn("10");
+        when(store.getPrefPlayer()).thenReturn("10");
         when(store.getPlayerHistory("10")).thenReturn(history);
         new GameModel(store, mEncoder, mTread, mHandler);
-        verify(store).getPreferences("currentPlayer");
+        verify(store).getPrefPlayer();
         verify(store).getPlayerHistory("10");
         verify(store).updatePlayerHistory(history);
         Assert.assertEquals("history updated", "010B", history.getUpDownHistory());
@@ -83,10 +83,10 @@ public class GameModelTest {
         player.setName("TestPlayer");
         GameStore store = mock(GameStore.class);
         //when(store.getPlayer("10")).thenReturn(player);
-        when(store.getPreferences("currentPlayer")).thenReturn("10");
+        when(store.getPrefPlayer()).thenReturn("10");
         when(store.getPlayerHistory("10")).thenReturn(history);
         new GameModel(store, mEncoder, mTread, mHandler);
-        verify(store).getPreferences("currentPlayer");
+        verify(store).getPrefPlayer();
         verify(store).getPlayerHistory("10");
         //Assert.assertEquals("history updated", "010B", history.getUpDownHistory());
     }
@@ -99,15 +99,15 @@ public class GameModelTest {
         player.setEngineScore(100);
         player.setPlayerScore(100);
         GameStore store = mock(GameStore.class);
-        when(store.getPreferences("mEngineMoveShown")).thenReturn("T");
+        when(store.getPrefMoveShown()).thenReturn(true);
         when(store.getPlayer("10")).thenReturn(player);
-        when(store.getPreferences("currentPlayer")).thenReturn("10");
+        when(store.getPrefPlayer()).thenReturn("10");
         when(store.getPlayerHistory("10")).thenReturn(history);
         new GameModel(store, mEncoder, mTread, mHandler);
-        verify(store).getPreferences("currentPlayer");
+        verify(store).getPrefPlayer();
         verify(store).getPlayerHistory("10");
         verify(store).updatePlayer(player);
-        verify(store).setPreferences("mEngineMoveShown", "F");
+        verify(store).setPrefMoveShown(false);
         Assert.assertEquals(player.getEngineScore(), 101);
         Assert.assertEquals(player.getPlayerScore(), 100);
     }
@@ -165,8 +165,8 @@ public class GameModelTest {
             }
         });
 
-        when(store.getPreferences("currentPlayer")).thenReturn("33");
-        when(store.getPreferences("mEngineMoveShown")).thenReturn("F");
+        when(store.getPrefPlayer()).thenReturn("33");
+        when(store.getPrefMoveShown()).thenReturn(false);
         when(store.getPlayerHistory("33")).thenReturn(new PlayerHistory("33",
                                                                         Move.SCISSORS,
                                                                         "12B",
@@ -211,8 +211,8 @@ public class GameModelTest {
             }
         });
 
-        when(store.getPreferences("currentPlayer")).thenReturn("33");
-        when(store.getPreferences("mEngineMoveShown")).thenReturn("F");
+        when(store.getPrefPlayer()).thenReturn("33");
+        when(store.getPrefMoveShown()).thenReturn(false);
         when(store.getPlayerHistory("33")).thenReturn(new PlayerHistory("33",
                                                                         Move.SCISSORS,
                                                                         "12B",
@@ -266,8 +266,8 @@ public class GameModelTest {
             }
         });
 
-        when(store.getPreferences("currentPlayer")).thenReturn("33");
-        when(store.getPreferences("mEngineMoveShown")).thenReturn("F");
+        when(store.getPrefPlayer()).thenReturn("33");
+        when(store.getPrefMoveShown()).thenReturn(false);
         when(store.getPlayerHistory("33")).thenReturn(new PlayerHistory("33",
                                                                         Move.SCISSORS,
                                                                         "12B",

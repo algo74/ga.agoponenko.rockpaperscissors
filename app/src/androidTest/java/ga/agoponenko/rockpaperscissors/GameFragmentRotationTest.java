@@ -20,6 +20,8 @@ import org.junit.Rule;
 import org.junit.Test;
 
 import ga.agoponenko.rockpaperscissors.db.DbHelper;
+import ga.agoponenko.rockpaperscissors.gamemodel.GameModel;
+import ga.agoponenko.rockpaperscissors.gamemodel.Player;
 
 import static android.support.test.espresso.Espresso.onView;
 import static android.support.test.espresso.action.ViewActions.click;
@@ -37,13 +39,20 @@ public class GameFragmentRotationTest {
     @Rule
     public final ActivityTestRule<GameActivity> main
           =new ActivityTestRule(GameActivity.class, true,false);
+    private GameModel mGameModel;
 
     @Before
     public void setUp() {
         SQLiteDatabase db = SQLiteDatabase.create(null);
         DbHelper.initDatabase(db);
-        AndrSQLiteGameStore store = AndrSQLiteGameStore.getInstance(main.getActivity());
+        AndrSQLiteGameStore store =
+              AndrSQLiteGameStore.getInstance(InstrumentationRegistry.getInstrumentation().getTargetContext());
         store.injectDb(db);
+        InstrumentationRegistry.getInstrumentation().runOnMainSync(
+              () -> mGameModel = GameModel.getInstance(InstrumentationRegistry.getTargetContext()));
+        Player player = mGameModel.newPlayer();
+        mGameModel.choosePlayer(player.getId());
+
         main.launchActivity(null);
         mFragment =
               main.getActivity().getSupportFragmentManager().findFragmentById(R.id.fragment_container);
