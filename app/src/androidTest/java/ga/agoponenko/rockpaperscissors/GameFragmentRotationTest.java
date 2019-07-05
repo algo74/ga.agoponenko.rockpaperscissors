@@ -12,7 +12,6 @@ import android.support.v4.app.Fragment;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -27,11 +26,9 @@ import static android.support.test.espresso.Espresso.onView;
 import static android.support.test.espresso.action.ViewActions.click;
 import static android.support.test.espresso.assertion.ViewAssertions.matches;
 import static android.support.test.espresso.matcher.ViewMatchers.isDisplayed;
-import static android.support.test.espresso.matcher.ViewMatchers.withAlpha;
 import static android.support.test.espresso.matcher.ViewMatchers.withId;
 import static com.google.common.truth.Truth.assertThat;
 import static org.awaitility.Awaitility.await;
-import static org.hamcrest.Matchers.not;
 
 public class GameFragmentRotationTest {
     private Fragment mFragment;

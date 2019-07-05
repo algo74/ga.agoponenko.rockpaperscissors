@@ -5,23 +5,18 @@ import android.support.test.InstrumentationRegistry;
 import android.support.test.rule.ActivityTestRule;
 import android.support.test.runner.AndroidJUnit4;
 import android.support.v4.app.Fragment;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
-import org.junit.After;
-import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import ga.agoponenko.rockpaperscissors.db.DbHelper;
 import ga.agoponenko.rockpaperscissors.gamemodel.GameModel;
-import ga.agoponenko.rockpaperscissors.gamemodel.GameStore;
 import ga.agoponenko.rockpaperscissors.gamemodel.Player;
 
 import static android.support.test.espresso.matcher.ViewMatchers.Visibility;
@@ -30,7 +25,8 @@ import static android.support.test.espresso.matcher.ViewMatchers.isDisplayed;
 import static android.support.test.espresso.matcher.ViewMatchers.withEffectiveVisibility;
 import static com.google.common.truth.Truth.assertThat;
 import static org.awaitility.Awaitility.await;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
 
 
 @RunWith(AndroidJUnit4.class)

@@ -5,7 +5,6 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.os.Handler;
 import android.support.annotation.VisibleForTesting;
-import android.util.Log;
 
 import java.util.List;
 

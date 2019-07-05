@@ -1,14 +1,9 @@
 package ga.agoponenko.rockpaperscissors;
 
 import android.content.Context;
-import android.content.res.Resources;
 import android.os.Handler;
-import android.util.Log;
-
-import com.google.zxing.WriterException;
 
 import org.junit.Assert;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -24,8 +19,6 @@ import ga.agoponenko.rockpaperscissors.gamemodel.Player;
 import ga.agoponenko.rockpaperscissors.gamemodel.PlayerHistory;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
