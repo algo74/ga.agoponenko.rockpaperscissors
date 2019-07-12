@@ -4,7 +4,6 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.os.Handler;
-import android.support.annotation.VisibleForTesting;
 
 import java.util.List;
 
@@ -48,21 +47,13 @@ public class GameModel {
         mEncoder = encoder;
         mPlayerId = mStore.getPrefPlayer();
 
-        if (getCurrentPlayer() == null) {
-            //newCurrentPlayer();
-        } else {
+        if (getCurrentPlayer() != null) {
             if((mStore.getPrefMoveShown())) {
                 increaseEngineScore();
                 mStore.setPrefMoveShown(false);
             }
             onGameResumed();
         }
-    }
-
-    @VisibleForTesting
-    public void newCurrentPlayer() {
-        mPlayerId = newPlayer().getId();
-        mStore.setPrefPlayer(mPlayerId);
     }
 
     public static GameModel getInstance(Context context) {
@@ -88,7 +79,7 @@ public class GameModel {
             @Override
             public void run() {
 
-                // response to run on the main thread
+                // response to run on the main thread when finished
                 Runnable response = new Runnable() {
                     @Override
                     public void run() {
@@ -96,7 +87,7 @@ public class GameModel {
                             callback.onEngineMoveReady(mEngineMove);
                         } else {
                             //Log.d("prepareEngineMove", "restarting because of conflict");
-                            prepareEngineMove(callback);
+                            GameModel.this.prepareEngineMove(callback);
                         }
                     }
                 };
@@ -105,7 +96,7 @@ public class GameModel {
                 if (mEngineMoveReady) {
                     mResponseHandler.post(response);
                 } else {
-                    PlayerHistory playerHistory = getCurrentPlayerHistory();
+                    PlayerHistory playerHistory = GameModel.this.getCurrentPlayerHistory();
                     int up = 0, down = 0, same = 0;
                     //Log.d("Full history",
                     //      playerHistory.upDownHistory+playerHistory
@@ -122,9 +113,10 @@ public class GameModel {
                                     //Log.d("History row",
                                     //      key + ": " + row.mSame + " " + row.mUp + " " + row
                                     //      .mDown);
-                                    up += row.getUp();
-                                    down += row.getDown();
-                                    same += row.getSame();
+                                    int k = 1;
+                                    up += k * row.getUp();
+                                    down += k * row.getDown();
+                                    same += k * row.getSame();
                                 }
                             }
                         }

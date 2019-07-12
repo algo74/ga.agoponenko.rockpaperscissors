@@ -1,6 +1,14 @@
 apply plugin: 'com.android.application'
 
 android {
+    signingConfigs {
+        release {
+            storeFile file('/Users/alex/signing/Untitled')
+            storePassword 'assaS!Nu5'
+            keyPassword 'assaS!Nu5'
+            keyAlias = 'androidKey'
+        }
+    }
     compileSdkVersion 28
     defaultConfig {
         applicationId "ga.agoponenko.rockpaperscissors"
@@ -20,10 +28,6 @@ android {
         debug {
             testCoverageEnabled = true
         }
-    }
-    compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
     }
 }
 

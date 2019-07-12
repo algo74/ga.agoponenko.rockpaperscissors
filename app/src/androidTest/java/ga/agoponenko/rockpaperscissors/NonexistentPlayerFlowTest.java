@@ -6,7 +6,6 @@ import android.database.sqlite.SQLiteDatabase;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.espresso.intent.rule.IntentsTestRule;
 import android.support.test.runner.AndroidJUnit4;
-import android.support.v4.app.Fragment;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -35,7 +34,6 @@ public class NonexistentPlayerFlowTest {
           =new IntentsTestRule(EmptyFragmentActivity.class, true, false);
 
     private AndrSQLiteGameStore mStore;
-    private Fragment mFragment;
     private GameModel mGameModel;
 
 
@@ -46,7 +44,13 @@ public class NonexistentPlayerFlowTest {
         mStore = AndrSQLiteGameStore.getInstance(InstrumentationRegistry.getTargetContext());
         mStore.injectDb(db);
         InstrumentationRegistry.getInstrumentation().runOnMainSync(
-              () -> mGameModel = GameModel.getInstance(InstrumentationRegistry.getTargetContext()));
+              new Runnable() {
+                  @Override
+                  public void run() {
+                      mGameModel =
+                            GameModel.getInstance(InstrumentationRegistry.getTargetContext());
+                  }
+              });
     }
 
     private void launchActivity() {
@@ -141,9 +145,9 @@ public class NonexistentPlayerFlowTest {
     }
 
     /*
-     * When the users exits "Select player" activity
+     * When the user exits "Select player" activity
      *
-     * If current player is null or doesn't exist
+     * If the current player doesn't exist
      *
      * The game exits
      */
